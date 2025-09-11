@@ -1,0 +1,60 @@
+import { styles } from "@/styles/auth.style";
+import { useOAuth } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
+import { Text, TouchableOpacity, View } from "react-native";
+
+// ✅ call ONCE at module load
+WebBrowser.maybeCompleteAuthSession();
+
+export default function OAuthButtons() {
+  const googleOAuth = useOAuth({ strategy: "oauth_google" });
+  const facebookOAuth = useOAuth({ strategy: "oauth_facebook" });
+
+  const onGooglePress = async () => {
+    try {
+      const { createdSessionId, setActive } =
+        await googleOAuth.startOAuthFlow();
+      if (createdSessionId) {
+        await setActive!({ session: createdSessionId });
+      }
+    } catch (err) {
+      console.error("Google OAuth error:", err);
+    }
+  };
+
+  const onFacebookPress = async () => {
+    try {
+      const { createdSessionId, setActive } =
+        await facebookOAuth.startOAuthFlow();
+      if (createdSessionId) {
+        await setActive!({ session: createdSessionId });
+      }
+    } catch (err) {
+      console.error("Facebook OAuth error:", err);
+    }
+  };
+
+  return (
+    <View style={{ width: "100%", alignItems: "center" }}>
+      <TouchableOpacity style={styles.googleButton} onPress={onGooglePress}>
+        <View style={styles.googleIconContainer}>
+          <Ionicons name="logo-google" size={20} color="#000" />
+        </View>
+        <Text style={styles.googleButtonText}>Continue with Google</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.googleButton, { backgroundColor: "#1877F2" }]}
+        onPress={onFacebookPress}
+      >
+        <View style={styles.googleIconContainer}>
+          <Ionicons name="logo-facebook" size={20} color="#fff" />
+        </View>
+        <Text style={[styles.googleButtonText, { color: "#fff" }]}>
+          Continue with Facebook
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}

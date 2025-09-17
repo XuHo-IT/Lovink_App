@@ -1,3 +1,4 @@
+// styles/auth.styles.ts
 import { COLORS } from "@/constants/theme";
 import { Dimensions, StyleSheet } from "react-native";
 
@@ -7,11 +8,6 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-  },
-  title: {
-    fontSize: 42,
-    fontWeight: "700",
-    fontFamily: "JetBrainsMono-Medium",
   },
   brandSection: {
     alignItems: "center",
@@ -57,8 +53,6 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: "center",
   },
-
-  // 🔹 Google button
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -71,7 +65,10 @@ export const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 300,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 5,
@@ -93,45 +90,5 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.gray,
     maxWidth: 280,
-  },
-
-  // 🔹 Sign-up form styles
-  input: {
-    width: "100%",
-    maxWidth: 300,
-    backgroundColor: COLORS.white,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 14,
-    fontSize: 15,
-    color: COLORS.surface,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  button: {
-    width: "100%",
-    maxWidth: 300,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 6,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.white,
-  },
-  linkRow: {
-    flexDirection: "row",
-    marginTop: 16,
-  },
-  link: {
-    color: COLORS.primary,
-    fontWeight: "600",
   },
 });

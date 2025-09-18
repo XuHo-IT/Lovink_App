@@ -5,12 +5,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Link, useRouter } from "expo-router";
 import * as React from "react";
 import {
-  StyleSheet,
+  Image,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from "react-native";
 
 export default function SignUpScreen() {

@@ -1,17 +1,20 @@
 import { Loader } from "@/components/Loader";
+import Post from "@/components/Post";
+import StoriesSection from "@/components/Stories";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "convex/react";
 import { useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../../constants/theme";
-import { styles } from "../../styles/auth.style";
+import { styles } from "../../styles/feed.style";
+
 export default function Index() {
   const { signOut } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
-  const posts = useQuery(api.posts.getFeedPost);
+  const posts = useQuery(api.posts.getFeedPosts);
 
   if (posts === undefined) return <Loader />;
   if (posts.length === 0) return <NoPostsFound />;
@@ -28,7 +31,7 @@ export default function Index() {
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>spotlight</Text>
+        <Text style={styles.headerTitle}>HOME</Text>
         <TouchableOpacity onPress={() => signOut()}>
           <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
         </TouchableOpacity>

@@ -91,4 +91,41 @@ export const styles = StyleSheet.create({
     color: COLORS.gray,
     maxWidth: 280,
   },
+   title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "white",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: "#2a2a2a",
+    color: "white",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#4ade80", 
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  buttonText: {
+    color: "black",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  linkRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 16,
+  },
+  link: {
+    color: "#4ade80",
+    fontWeight: "600",
+  },
 });

@@ -6,7 +6,7 @@ const { width } = Dimensions.get("window");
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.black,
   },
   header: {
     flexDirection: "row",
@@ -14,7 +14,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
     borderBottomColor: COLORS.surface,
   },
   headerTitle: {
@@ -25,7 +24,7 @@ export const styles = StyleSheet.create({
   storiesContainer: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.surface,
+    borderBottomColor: COLORS.black,
   },
   storyWrapper: {
     alignItems: "center",
@@ -133,7 +132,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalContainer: {
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.black,
     marginBottom: Platform.OS === "ios" ? 44 : 0,
     flex: 1,
     marginTop: Platform.OS === "ios" ? 44 : 0,
@@ -160,7 +159,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: COLORS.surface,
+    borderBottomColor: COLORS.black,
   },
   commentAvatar: {
     width: 32,

@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/theme";
 import { api } from "@/convex/_generated/api";
 import { styles } from "@/styles/create.style";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "convex/react";
 import * as FileSystem from "expo-file-system";
@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 export default function CreatScreen() {
+    const { signOut } = useAuth();
   const router = useRouter();
   const { user } = useUser();
   const [caption, setCaption] = useState("");
@@ -70,8 +71,11 @@ export default function CreatScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={28} color={COLORS.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Post</Text>
+          <Text style={styles.headerTitle}>NEW POST</Text>
           <View style={{ width: 28 }} />
+            <TouchableOpacity onPress={() => signOut()}>
+          <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
+        </TouchableOpacity>
         </View>
         <TouchableOpacity
           style={styles.emptyImageContainer}
@@ -105,7 +109,7 @@ export default function CreatScreen() {
               color={isSharing ? COLORS.gray : COLORS.white}
             />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>New Post</Text>
+          <Text style={styles.headerTitle}>NEW POST</Text>
           <TouchableOpacity
             style={[
               styles.shareButton,

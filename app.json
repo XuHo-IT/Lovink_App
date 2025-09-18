@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Lovink",
+    "name": "Lovink",                // 👈 This is also the name in notifications
     "slug": "Lovink",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,9 +8,12 @@
     "scheme": "lovink",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/logo.png"
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -18,11 +21,18 @@
       },
       "edgeToEdgeEnabled": true
     },
+
+    "notification": {
+      "icon":"./assets/images/logo.png" , 
+      "color": "#FF5733"                             
+    },
+
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
       [
@@ -36,6 +46,7 @@
       ],
       "expo-web-browser"
     ],
+
     "experiments": {
       "typedRoutes": true
     }

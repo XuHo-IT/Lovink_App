@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 14,
     marginBottom: 20,
-    width: "100%",
+    width: "50%",
     maxWidth: 300,
     shadowColor: "#000",
     shadowOffset: {
@@ -99,25 +99,29 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    backgroundColor: "#2a2a2a",
-    color: "white",
+    backgroundColor: "#6daaefff",
+    color: "#000",
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 12,
     fontSize: 16,
+     width: "100%", 
+     alignItems: "center" ,
   },
   button: {
-    backgroundColor: "#4ade80", 
+    backgroundColor: "#f893b5ff", 
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 8,
+     width: "50%", 
   },
   buttonText: {
     color: "black",
     fontWeight: "600",
     fontSize: 16,
+    
   },
   linkRow: {
     flexDirection: "row",

@@ -36,25 +36,24 @@ export default function OAuthButtons() {
   };
 
   return (
-    <View style={{ width: "100%", alignItems: "center" }}>
-      <TouchableOpacity style={styles.googleButton} onPress={onGooglePress}>
-        <View style={styles.googleIconContainer}>
-          <Ionicons name="logo-google" size={20} color="#000" />
-        </View>
-        <Text style={styles.googleButtonText}>Continue with Google</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.googleButton, { backgroundColor: "#1877F2" }]}
-        onPress={onFacebookPress}
-      >
-        <View style={styles.googleIconContainer}>
-          <Ionicons name="logo-facebook" size={20} color="#fff" />
-        </View>
-        <Text style={[styles.googleButtonText, { color: "#fff" }]}>
-          Continue with Facebook
-        </Text>
-      </TouchableOpacity>
+   <View style={{ flexDirection: "row", justifyContent: "center", gap: 10 }}>
+  <TouchableOpacity style={styles.googleButton} onPress={onGooglePress}>
+    <View style={styles.googleIconContainer}>
+      <Ionicons name="logo-google" size={20} color="#000" />
     </View>
+    <Text style={styles.googleButtonText}>Google</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={[styles.googleButton, { backgroundColor: "#1877F2" }]}
+    onPress={onFacebookPress}
+  >
+    <View style={styles.googleIconContainer}>
+      <Ionicons name="logo-facebook" size={20} color="#fff" />
+    </View>
+    <Text style={[styles.googleButtonText, { color: "#fff" }]}>Facebook</Text>
+  </TouchableOpacity>
+</View>
+
   );
 }

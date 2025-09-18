@@ -1,6 +1,5 @@
 import { styles } from "@/styles/auth.style";
 import { useSignIn } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
 import React from "react";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -36,15 +35,6 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 🔹 Brand Section */}
-      <View style={styles.brandSection}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="leaf" size={32} color={"#4ade80"} />
-        </View>
-        <Text style={styles.appName}>spotlight</Text>
-        <Text style={styles.tagline}>don't miss anything</Text>
-      </View>
-
       {/* 🔹 Illustration */}
       <View style={styles.illustrationContainer}>
         <Image

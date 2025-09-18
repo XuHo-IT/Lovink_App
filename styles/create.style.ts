@@ -4,7 +4,7 @@ const { width } = Dimensions.get("window");
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.black, //note
+    backgroundColor: COLORS.background,
   },
   contentContainer: {
     flex: 1,

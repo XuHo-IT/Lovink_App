@@ -21,14 +21,15 @@ export default function TabLayout() {
           tabBarShowLabel: false,
           headerShown: false,
           tabBarActiveTintColor: COLORS.primary,
-          tabBarInactiveTintColor: COLORS.gray,
+          tabBarInactiveTintColor: "#fff",
           tabBarStyle: {
-            backgroundColor: "black",
+            backgroundColor: "#6daaefff",
             borderTopWidth: 0,
             position: "absolute",
             elevation: 0,
-            height: 40,
+            height: 50,
             paddingBottom: 8,
+            paddingTop:15,
           },
         }}
       >
@@ -38,9 +39,9 @@ export default function TabLayout() {
     tabBarButton: (props) => (
       <TouchableOpacity
         onPress={() => setMenuVisible(true)}
-        style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
+        style={{ alignItems: "center", justifyContent: "center", marginTop: 5 }}
       >
-        <Ionicons name="home" size={24} color="white" />
+        <Ionicons name="home" size={24} color="#FF6B9C" />
       </TouchableOpacity>
     ),
   }}
@@ -92,7 +93,7 @@ export default function TabLayout() {
 
               }}
             >
-              <Ionicons name="home" size={22} color="black" />
+              <Ionicons name="home" size={22} color="#FF6B9C" />
               <Text style={styles.menuText}>Home</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -102,7 +103,7 @@ export default function TabLayout() {
                 router.push("/bookmark");
               }}
             >
-              <Ionicons name="bookmarks" size={22} color="black" />
+              <Ionicons name="bookmarks" size={22} color="#FF6B9C" />
               <Text style={styles.menuText}>Bookmark</Text>
             </TouchableOpacity>
 
@@ -113,7 +114,7 @@ export default function TabLayout() {
                 router.push("/create");
               }}
             >
-              <Ionicons name="add-circle" size={22} color={COLORS.primary} />
+              <Ionicons name="add-circle" size={22} color="#FF6B9C" />
               <Text style={styles.menuText}>Create</Text>
             </TouchableOpacity>
 
@@ -124,7 +125,7 @@ export default function TabLayout() {
                 router.push("/notification");
               }}
             >
-              <Ionicons name="heart" size={22} color="black" />
+              <Ionicons name="heart" size={22} color="#FF6B9C" />
               <Text style={styles.menuText}>Notification</Text>
             </TouchableOpacity>
           </View>
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
   },
   menu: {
-    backgroundColor: "white",
+    backgroundColor: "#6daaefff",
     paddingVertical: 20,
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
@@ -155,6 +156,6 @@ const styles = StyleSheet.create({
   menuText: {
     marginLeft: 10,
     fontSize: 16,
-    color: "black",
+    color: "white",
   },
 });

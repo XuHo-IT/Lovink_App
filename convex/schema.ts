@@ -63,4 +63,12 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_post", ["postId"])
     .index("by_user_and_post", ["userId", "postId"]),
+
+      notes: defineTable({
+    userId: v.id("users"),
+    title: v.string(),
+    content: v.string(),
+    date: v.string(), // store as ISO string
+    createdAt: v.string(),
+  }).index("by_user", ["userId"]),
 });

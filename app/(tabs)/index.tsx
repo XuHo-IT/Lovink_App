@@ -1,69 +1,132 @@
-import { Loader } from "@/components/Loader";
-import Post from "@/components/Post";
-import StoriesSection from "@/components/Stories";
 import { api } from "@/convex/_generated/api";
+import { styles } from "@/styles/auth.style";
 import { useAuth } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "convex/react";
-import { useState } from "react";
-import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
-import { COLORS } from "../../constants/theme";
-import { styles } from "../../styles/feed.style";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useConvex, useMutation } from "convex/react";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-export default function Index() {
-  const { signOut } = useAuth();
-  const [refreshing, setRefreshing] = useState(false);
+const CoupleCodeScreen: React.FC = () => {
+  const [myCode, setMyCode] = useState("");
+  const [loverCode, setLoverCode] = useState("");
+  const [showMyCode, setShowMyCode] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const posts = useQuery(api.posts.getFeedPosts);
+  const convex = useConvex();
+  const connectCouple = useMutation(api.users.connectCouple);
+  const { userId } = useAuth();
+  const router = useRouter();
 
-  if (posts === undefined) return <Loader />;
-  if (posts.length === 0) return <NoPostsFound />;
-
-  // this does nothing
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
+  const handleGetMyCode = async () => {
+    try {
+      if (!userId) {
+        alert("User not authenticated");
+        return;
+      }
+      const code = await convex.query(api.users.getUserCode, { clerkId: userId });
+      setMyCode(code);
+    } catch (err) {
+      console.error("Error fetching my code:", err);
+      alert("Failed to fetch your code");
+    }
   };
+
+  const handleGetLoverCode = async () => {
+    try {
+      const lover = await convex.query(api.users.getUserByCode, { code: loverCode });
+      if (!lover) {
+        alert("Lover not found ❌");
+        return;
+      }
+      alert("Lover found ✅");
+    } catch (err) {
+      console.error("Error finding lover:", err);
+      alert("Error finding lover");
+    }
+  };
+
+const handleConnect = async () => {
+  try {
+    if (!userId) {
+      alert("User not authenticated");
+      return;
+    }
+
+    // Gọi mutation và nhận về coupleId (string)
+    const coupleId = await connectCouple({ myClerkId: userId, loverCode });
+
+    if (coupleId) {
+      // Lưu coupleId
+      await AsyncStorage.setItem("coupleId", coupleId);
+    }
+
+    setModalVisible(true);
+    setTimeout(() => {
+      setModalVisible(false);
+      router.replace("/(tabs)/quiz");
+    }, 2000);
+  } catch (err) {
+    console.error("Error connecting couple:", err);
+    alert("Failed to connect 💔");
+  }
+};
+
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>HOME</Text>
-        <TouchableOpacity onPress={() => signOut()}>
-          <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.title}>Couple Code</Text>
 
-      <FlatList
-        data={posts}
-        renderItem={({ item }) => <Post post={item} />}
-        keyExtractor={(item) => item._id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 60 }}
-        ListHeaderComponent={<StoriesSection />}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={COLORS.primary}
+      {showMyCode ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Your Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Your code will appear here"
+            value={myCode}
+            editable={false}
           />
-        }
-      />
+          <TouchableOpacity style={styles.button} onPress={handleGetMyCode}>
+            <Text style={styles.buttonText}>Get My Code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowMyCode(false)}>
+            <Text style={styles.linkText}>Back to Lover's Code</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>Lover's Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter lover's code"
+            value={loverCode}
+            onChangeText={setLoverCode}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleGetLoverCode}>
+            <Text style={styles.buttonText}>Find Lover</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowMyCode(true)}>
+            <Text style={styles.linkText}>Get your code?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.connectButton]}
+            onPress={handleConnect}
+          >
+            <Text style={styles.buttonText}>Connect Couple</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>💖 Happy for you guys! 💖</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
-}
-const NoPostsFound = () => (
-  <View
-    style={{
-      flex: 1,
-      backgroundColor: COLORS.background,
-      justifyContent: "center",
-      alignItems: "center",
-    }}
-  >
-    <Text style={{ fontSize: 20, color: COLORS.primary }}>No posts yet</Text>
-  </View>
-);
+};
+
+// Add default export
+export default CoupleCodeScreen;

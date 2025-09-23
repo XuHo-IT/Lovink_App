@@ -46,7 +46,7 @@ import { ScrollView, Text, TouchableOpacity, View } from "react-native";
         borderBottomColor: "#ccc",
         alignItems: "center",
       }}
-      onPress={() => router.push("/(tabs)")} 
+      onPress={() => router.push("/(tabs)/newsfed")} 
     >
       {/* Image */}
       <Image

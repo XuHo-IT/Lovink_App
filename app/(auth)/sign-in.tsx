@@ -1,20 +1,40 @@
+import { api } from "@/convex/_generated/api";
 import { styles } from "@/styles/auth.style";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useSignIn, useUser } from "@clerk/clerk-expo";
+import { useMutation } from "convex/react";
 import { Link, useRouter } from "expo-router";
 import React from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Modal,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import OAuthButtons from "./oauthButton";
 
 export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { user } = useUser();
   const router = useRouter();
 
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
+  const [showModal, setShowModal] = React.useState(false);
+
+  const createUser = useMutation(api.users.createUser);
 
   const onSignInPress = async () => {
     if (!isLoaded) return;
+
+    if (!emailAddress || !password) {
+      setError("Please fill in all fields.");
+      setShowModal(true);
+      return;
+    }
+
     try {
       const result = await signIn.create({
         identifier: emailAddress,
@@ -23,19 +43,50 @@ export default function SignInScreen() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+
+        // ensure Convex user exists
+        if (user) {
+          await createUser({
+            username:
+              user.username ??
+              user.primaryEmailAddress?.emailAddress.split("@")[0] ??
+              "anonymous",
+            fullname: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+            email: user.primaryEmailAddress?.emailAddress ?? "",
+            image: user.imageUrl,
+            clerkId: user.id,
+          });
+        }
         router.replace("/(tabs)");
       } else {
-        console.log(result);
+        setError("Unexpected sign-in result. Try again.");
+        setShowModal(true);
       }
     } catch (err: any) {
       console.error(err);
       setError("Invalid credentials. Try again.");
+      setShowModal(true);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* 🔹 Illustration */}
+      {/* Modal for errors */}
+      <Modal visible={showModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setShowModal(false)}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Logo */}
       <View style={styles.illustrationContainer}>
         <Image
           source={require("../../assets/images/logo.png")}
@@ -44,13 +95,8 @@ export default function SignInScreen() {
         />
       </View>
 
-      {/* 🔹 Login Section */}
+      {/* Form */}
       <View style={styles.loginSection}>
-        {error ? (
-          <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>
-        ) : null}
-
-        {/* Email */}
         <TextInput
           style={styles.input}
           placeholder="Enter email"
@@ -58,8 +104,6 @@ export default function SignInScreen() {
           value={emailAddress}
           onChangeText={setEmailAddress}
         />
-
-        {/* Password */}
         <TextInput
           style={styles.input}
           placeholder="Enter password"
@@ -68,23 +112,17 @@ export default function SignInScreen() {
           onChangeText={setPassword}
         />
 
-        {/* Continue Button */}
         <TouchableOpacity style={styles.button} onPress={onSignInPress}>
           <Text style={styles.buttonText}>Sign in</Text>
         </TouchableOpacity>
 
-        {/* Divider */}
         <Text style={{ color: "#999", marginVertical: 12 }}>or</Text>
-
-        {/* Google Button */}
         <OAuthButtons />
 
-        {/* Terms */}
         <Text style={styles.termsText}>
           By continuing, you agree to our Terms and Privacy Policy
         </Text>
 
-        {/* Switch to Sign Up */}
         <View style={styles.linkRow}>
           <Text style={{ color: "white" }}>Don't have an account? </Text>
           <Link href="/sign-up">

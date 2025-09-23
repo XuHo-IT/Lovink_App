@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
 import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 
 function generateCode(length = 6) {
@@ -44,8 +43,6 @@ export const createUser = mutation({
       bio: args.bio,
       image: args.image,
       clerkId: args.clerkId,
-      followers: 0,
-      following: 0,
       posts: 0,
       code,
     });
@@ -62,6 +59,13 @@ export async function getAuthenticatedUser(ctx: QueryCtx | MutationCtx) {
   if (!currentUser) throw new Error("User not found");
   return currentUser;
 }
+
+// Wrap getAuthenticatedUser as a query
+export const getAuthenticatedUserQuery = query({
+  handler: async (ctx) => {
+    return await getAuthenticatedUser(ctx);
+  },
+});
 export const getUserByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
@@ -97,72 +101,107 @@ export const getUserProfile = query({
     return user;
   },
 });
-
-export const isFollowing = query({
-  args: { followingId: v.id("users") },
+export const getUserCode = query({
+  args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const currentUser = await getAuthenticatedUser(ctx);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
 
-    const follow = await ctx.db
-      .query("follows")
-      .withIndex("by_both", (q) =>
-        q.eq("followerId", currentUser._id).eq("followingId", args.followingId)
-      )
-      .first();
-
-    return !!follow;
-  },
-});
-
-export const toggleFollow = mutation({
-  args: { followingId: v.id("users") },
-  handler: async (ctx, args) => {
-    const currentUser = await getAuthenticatedUser(ctx);
-
-    const existing = await ctx.db
-      .query("follows")
-      .withIndex("by_both", (q) =>
-        q.eq("followerId", currentUser._id).eq("followingId", args.followingId)
-      )
-      .first();
-
-    if (existing) {
-      // unfollow
-      await ctx.db.delete(existing._id);
-      await updateFollowCounts(ctx, currentUser._id, args.followingId, false);
-    } else {
-      // follow
-      await ctx.db.insert("follows", {
-        followerId: currentUser._id,
-        followingId: args.followingId,
-      });
-      await updateFollowCounts(ctx, currentUser._id, args.followingId, true);
-
-      // create a notification
-      await ctx.db.insert("notifications", {
-        receiverId: args.followingId,
-        senderId: currentUser._id,
-        type: "follow",
-      });
+    if (!user) {
+      throw new Error("User not found");
     }
+
+    return user.code;
+  },
+});
+export const connectCouple = mutation({
+  args: {
+    myClerkId: v.string(),
+    loverCode: v.string(),
+  },
+  handler: async (ctx, { myClerkId, loverCode }) => {
+    // find my user
+    const me = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", myClerkId))
+      .unique();
+
+    if (!me) throw new Error("User not found");
+
+    // find lover by code
+    const lover = await ctx.db
+      .query("users")
+      .withIndex("by_code", (q) => q.eq("code", loverCode))
+      .unique();
+
+    if (!lover) throw new Error("Lover not found");
+
+    // check if already connected (both directions)
+    const existing = await ctx.db
+      .query("couples")
+      .withIndex("by_pair", (q) =>
+        q.eq("user1Id", me._id).eq("user2Id", lover._id)
+      )
+      .unique();
+
+    const reverse = await ctx.db
+      .query("couples")
+      .withIndex("by_pair", (q) =>
+        q.eq("user1Id", lover._id).eq("user2Id", me._id)
+      )
+      .unique();
+
+    if (existing || reverse) {
+      return existing?._id ?? reverse?._id;
+    }
+
+    // ✅ Insert couple, storing ISO string instead of number
+    return await ctx.db.insert("couples", {
+      user1Id: me._id,
+      user2Id: lover._id,
+      createdAt: new Date().toISOString(), // must be string
+    });
   },
 });
 
-async function updateFollowCounts(
-  ctx: MutationCtx,
-  followerId: Id<"users">,
-  followingId: Id<"users">,
-  isFollow: boolean
-) {
-  const follower = await ctx.db.get(followerId);
-  const following = await ctx.db.get(followingId);
+export const getUserByCode = query({
+  args: { code: v.string() },
+  handler: async (ctx, { code }) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_code", (q) => q.eq("code", code))
+      .unique();
+  },
+});
+export const updateRelationshipType = mutation({
+  args: {
+    coupleId: v.id("couples"),
+    relationshipType: v.string(), // "nearby" | "longDistance"
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.coupleId, {
+      relationshipType: args.relationshipType,
+    });
+  },
+});
+export const getRelationshipType = query({
+  args: { coupleId: v.id("couples") },
+  handler: async (ctx, args) => {
+    const couple = await ctx.db.get(args.coupleId);
+    if (!couple) return null;
+    return couple.relationshipType ?? null;
+  },
+});
+export const getRelationshipTypeByUser = query({
+  args: { userId: v.id("users") }, 
+  handler: async (ctx, args) => {
+    const couple =
+      (await ctx.db.query("couples").withIndex("by_user1", (q) => q.eq("user1Id", args.userId)).first()) ||
+      (await ctx.db.query("couples").withIndex("by_user2", (q) => q.eq("user2Id", args.userId)).first());
 
-  if (follower && following) {
-    await ctx.db.patch(followerId, {
-      following: follower.following + (isFollow ? 1 : -1),
-    });
-    await ctx.db.patch(followingId, {
-      followers: following.followers + (isFollow ? 1 : -1),
-    });
-  }
-}
+    if (!couple) return null;
+    return couple.relationshipType ?? null;
+  },
+});

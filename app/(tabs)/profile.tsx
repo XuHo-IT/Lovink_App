@@ -9,7 +9,6 @@ import { useMutation, useQuery } from "convex/react";
 import { Image } from "expo-image";
 import { useState } from "react";
 import {
-  FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -19,7 +18,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
 
 export default function Profile() {
@@ -33,7 +32,6 @@ export default function Profile() {
   });
 
   const [selectedPost, setSelectedPost] = useState<Doc<"posts"> | null>(null);
-  const posts = useQuery(api.posts.getPostsByUser, {});
 
   const updateProfile = useMutation(api.users.updateProfile);
 
@@ -42,7 +40,7 @@ export default function Profile() {
     setIsEditModalVisible(false);
   };
 
-  if (!currentUser || posts === undefined) return <Loader />;
+  if (!currentUser) return <Loader />;
 
   return (
     <View style={styles.container}>
@@ -76,14 +74,6 @@ export default function Profile() {
                 <Text style={styles.statNumber}>{currentUser.posts}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.followers}</Text>
-                <Text style={styles.statLabel}>Followers</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.following}</Text>
-                <Text style={styles.statLabel}>Following</Text>
-              </View>
             </View>
           </View>
 
@@ -100,23 +90,7 @@ export default function Profile() {
           </View>
         </View>
 
-        {posts.length === 0 && <NoPostsFound />}
-
-        <FlatList
-          data={posts}
-          numColumns={3}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.gridItem} onPress={() => setSelectedPost(item)}>
-              <Image
-                source={item.imageUrl}
-                style={styles.gridImage}
-                contentFit="cover"
-                transition={200}
-              />
-            </TouchableOpacity>
-          )}
-        />
+    
       </ScrollView>
 
       {/* EDIT PROFILE MODAL */}

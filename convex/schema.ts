@@ -7,8 +7,6 @@ export default defineSchema({
     email: v.string(),
     bio: v.optional(v.string()),
     image: v.string(),
-    followers: v.number(),
-    following: v.number(),
     posts: v.number(),
     clerkId: v.string(),
     code: v.string(),
@@ -71,4 +69,15 @@ export default defineSchema({
     date: v.string(), // store as ISO string
     createdAt: v.string(),
   }).index("by_user", ["userId"]),
+
+couples: defineTable({
+  user1Id: v.id("users"),
+  user2Id: v.id("users"),
+  createdAt: v.string(), // store as ISO date
+  relationshipType: v.optional(v.string()), // "nearby" | "longDistance"
+})
+  .index("by_user1", ["user1Id"])
+  .index("by_user2", ["user2Id"])
+  .index("by_pair", ["user1Id", "user2Id"])
 });
+

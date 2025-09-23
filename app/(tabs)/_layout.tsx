@@ -2,13 +2,7 @@ import { COLORS } from "@/constants/theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet } from "react-native";
 
 export default function TabLayout() {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -29,25 +23,31 @@ export default function TabLayout() {
             elevation: 0,
             height: 50,
             paddingBottom: 8,
-            paddingTop:15,
+            paddingTop: 15,
           },
         }}
       >
-        <Tabs.Screen
+     <Tabs.Screen
   name="index"
   options={{
-    tabBarButton: (props) => (
-      <TouchableOpacity
-        onPress={() => setMenuVisible(true)}
-        style={{ alignItems: "center", justifyContent: "center", marginTop: 5 }}
-      >
-        <Ionicons name="home" size={24} color="#FF6B9C" />
-      </TouchableOpacity>
+    href: null,
+     tabBarStyle: { display: "none" }, // 👈 tab sẽ bị ẩn, nhưng vẫn navigate được
+    tabBarIcon: ({ size, color }) => (
+      <Ionicons name="code-slash" size={size} color={color} />
     ),
   }}
 />
+
         <Tabs.Screen
-          name="flame"
+          name="newsfed"
+          options={{
+            tabBarIcon: ({ size, color }) => (
+              <Ionicons name="home" size={size} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="activities"
           options={{
             tabBarIcon: ({ size, color }) => (
               <Ionicons name="flame" size={size} color={color} />
@@ -70,67 +70,15 @@ export default function TabLayout() {
             ),
           }}
         />
-        <Tabs.Screen name="bookmark" options={{ href: null }} />
+        {/* 🔹 Remove unsed screen */}
+        <Tabs.Screen name="quiz"
+        
+        options={{ href: null,  tabBarStyle: { display: "none" }, }} />
+        <Tabs.Screen name="flame" options={{ href: null }} />
         <Tabs.Screen name="create" options={{ href: null }} />
+        <Tabs.Screen name="bookmark" options={{ href: null }} />
         <Tabs.Screen name="notification" options={{ href: null }} />
       </Tabs>
-      
-
-      {/* 🔹 Popup Menu cho index */}
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.menu}>
-              <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/");
-
-              }}
-            >
-              <Ionicons name="home" size={22} color="#FF6B9C" />
-              <Text style={styles.menuText}>Home</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/bookmark");
-              }}
-            >
-              <Ionicons name="bookmarks" size={22} color="#FF6B9C" />
-              <Text style={styles.menuText}>Bookmark</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/create");
-              }}
-            >
-              <Ionicons name="add-circle" size={22} color="#FF6B9C" />
-              <Text style={styles.menuText}>Create</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/notification");
-              }}
-            >
-              <Ionicons name="heart" size={22} color="#FF6B9C" />
-              <Text style={styles.menuText}>Notification</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </>
   );
 }

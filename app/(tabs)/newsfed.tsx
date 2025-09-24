@@ -4,6 +4,7 @@ import { api } from "@/convex/_generated/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "convex/react";
+import { router, useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { COLORS } from "../../constants/theme";
@@ -12,6 +13,7 @@ import { styles } from "../../styles/feed.style";
 export default function Index() {
   const { signOut } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
 
   const posts = useQuery(api.posts.getFeedPosts);
 
@@ -62,6 +64,21 @@ const NoPostsFound = () => (
       alignItems: "center",
     }}
   >
-    <Text style={{ fontSize: 20, color: COLORS.primary }}>No posts yet</Text>
+    <Text style={{ fontSize: 20, color: COLORS.primary }}>No image for your couple</Text>
+    <TouchableOpacity
+  onPress={() => router.push("/(tabs)/activities")}
+  style={{
+    marginTop: 20,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#db6fb7ff", // background ok
+    alignItems: "center",
+  }}
+>
+  <Text style={{ fontSize: 20, color:"#1500f9ff" }}>
+    Create new memory and streak
+  </Text>
+</TouchableOpacity>
+
   </View>
 );

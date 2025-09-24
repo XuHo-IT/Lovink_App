@@ -56,11 +56,7 @@ export default function TabLayout() {
         />
         <Tabs.Screen
           name="note"
-          options={{
-            tabBarIcon: ({ size, color }) => (
-              <Ionicons name="create" size={size} color={color} />
-            ),
-          }}
+         options={{ href: null }}
         />
         <Tabs.Screen
           name="profile"
@@ -75,7 +71,6 @@ export default function TabLayout() {
         
         options={{ href: null,  tabBarStyle: { display: "none" }, }} />
         <Tabs.Screen name="flame" options={{ href: null }} />
-        <Tabs.Screen name="create" options={{ href: null }} />
         <Tabs.Screen name="bookmark" options={{ href: null }} />
         <Tabs.Screen name="notification" options={{ href: null }} />
       </Tabs>

@@ -49,20 +49,6 @@ export default function QuizScreen() {
     }
   };
 
-  const handleCancel = () => {
-    router.replace({
-      pathname: "/",
-      params: { relationshipType: "all" }, // 👈 merge mode
-    });
-  };
-
-  const handleQuit = () => {
-    router.replace({
-      pathname: "/",
-      params: { relationshipType: "all" }, // 👈 merge mode
-    });
-  };
-
   const handleFinish = async () => {
     setShowFinishModal(false);
 
@@ -98,23 +84,36 @@ export default function QuizScreen() {
       </View>
 
       {/* Options */}
-      <View style={styles.optionsContainer}>
-        {currentQuestion.options.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.optionButton}
-            onPress={() => handleSelect(option)}
-          >
-            <Text style={styles.optionText}>{option}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+   {/* Options */}
+<View style={styles.optionsContainer}>
+  {currentQuestion.options.map((option, index) => {
+    const isSelected = answers[currentIndex] === option;
+    return (
+      <TouchableOpacity
+        key={index}
+        style={[
+          styles.optionButton,
+          isSelected && styles.optionButtonSelected,
+        ]}
+        onPress={() => handleSelect(option)}
+      >
+        <Text
+          style={[
+            styles.optionText,
+            isSelected && styles.optionTextSelected,
+          ]}
+        >
+          {option}
+        </Text>
+      </TouchableOpacity>
+    );
+  })}
+</View>
+
 
       {/* Footer Buttons */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-          <Text style={styles.footerText}>Cancel</Text>
-        </TouchableOpacity>
+
 
         <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.footerText}>
@@ -122,9 +121,6 @@ export default function QuizScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.quitButton} onPress={handleQuit}>
-          <Text style={styles.footerText}>Quit</Text>
-        </TouchableOpacity>
       </View>
 
       {/* ✅ Finish Modal */}
@@ -138,7 +134,7 @@ export default function QuizScreen() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>🎉 Quiz Completed!</Text>
             <Text style={styles.modalSubtitle}>
-              Great job, you finished the quiz.
+              Great job, you are ready now with your soulmate.
             </Text>
             <TouchableOpacity style={styles.modalButton} onPress={handleFinish}>
               <Text style={styles.modalButtonText}>Go to Activities</Text>
@@ -223,4 +219,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   modalButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+
+optionButtonSelected: {
+  backgroundColor: "#27AE60", // green when selected
+  borderColor: "#27AE60",
+},
+optionTextSelected: { color: "#fff", fontWeight: "700" },
 });

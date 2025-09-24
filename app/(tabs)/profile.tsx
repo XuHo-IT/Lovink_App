@@ -18,13 +18,32 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from "react-native";
 
 export default function Profile() {
   const { signOut, userId } = useAuth();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const currentUser = useQuery(api.users.getUserByClerkId, userId ? { clerkId: userId } : "skip");
+
+  // get currentUser by ClerkId (returns the Convex user doc)
+  const currentUser = useQuery(
+    api.users.getUserByClerkId,
+    userId ? { clerkId: userId } : "skip"
+  );
+
+  // then pass Convex user._id to couple query
+  const couple = useQuery(
+    api.users.getCoupleByUser,
+    currentUser?._id ? { userId: currentUser._id } : "skip"
+  );
+
+  // streak calculation
+  const streak = couple?.createdAt
+    ? Math.floor(
+        (Date.now() - new Date(couple.createdAt).getTime()) /
+          (1000 * 60 * 60 * 24)
+      ) + 1 // +1 to count today
+    : 0;
 
   const [editedProfile, setEditedProfile] = useState({
     fullname: currentUser?.fullname || "",
@@ -39,7 +58,17 @@ export default function Profile() {
     await updateProfile(editedProfile);
     setIsEditModalVisible(false);
   };
+  const removeCouple = useMutation(api.users.removeCouple); // you’ll create this mutation in Convex
 
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [goodbyeModalVisible, setGoodbyeModalVisible] = useState(false);
+
+  const handleDeclineLove = async () => {
+    if (!currentUser?._id) return;
+    await removeCouple({ userId: currentUser._id }); // pass current user
+    setConfirmModalVisible(false);
+    setGoodbyeModalVisible(true);
+  };
   if (!currentUser) return <Loader />;
 
   return (
@@ -47,7 +76,7 @@ export default function Profile() {
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.username}>{currentUser.username}</Text>
+          <Text style={styles.username}>Welcome {currentUser.fullname}</Text>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
@@ -56,41 +85,173 @@ export default function Profile() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
         <View style={styles.profileInfo}>
-          {/* AVATAR & STATS */}
-          <View style={styles.avatarAndStats}>
-            <View style={styles.avatarContainer}>
+          {/* AVATAR */}
+          <View style={{ marginBottom: 30, paddingHorizontal: 16 }}>
+            {/* Row with your avatar, info, lover avatar */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 20,
+              }}
+            >
+              {/* Your avatar */}
               <Image
                 source={currentUser.image}
-                style={styles.avatar}
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  borderWidth: 2,
+                  borderColor: COLORS.primary,
+                }}
                 contentFit="cover"
                 transition={200}
               />
+
+              {/* Info block */}
+              <View style={{ flex: 1, marginHorizontal: 12 }}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: "700",
+                      color: COLORS.white,
+                      flex: 1,
+                    }}
+                  >
+                    {currentUser.fullname}
+                  </Text>
+                </View>
+
+                {/* Bio */}
+                {currentUser.bio && (
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: COLORS.gray,
+                      marginTop: 4,
+                    }}
+                    numberOfLines={2}
+                  >
+                    {currentUser.bio}
+                  </Text>
+                )}
+
+                {/* Small edit button */}
+                <TouchableOpacity
+                  style={{
+                    alignSelf: "flex-start",
+                    marginTop: 8,
+                    backgroundColor: COLORS.primary, // fixed solid background
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 6,
+                  }}
+                  onPress={() => setIsEditModalVisible(true)}
+                >
+                  <Text style={{ fontSize: 12, color: COLORS.white }}>
+                    Edit
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+        
+              {/* Love icon + lover avatar */}
+              {couple && (
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Ionicons
+                    name="heart"
+                    size={84}
+                    color={COLORS.primary}
+                    style={{ marginRight: 40 }}
+                  />
+                  <Image
+                    source={couple.soulmateImage}
+                    style={{
+                      width: 70,
+                      height: 70,
+                      borderRadius: 35,
+                      borderWidth: 2,
+                      borderColor: COLORS.primary,
+                    }}
+                    contentFit="cover"
+                    transition={200}
+                  />
+
+                </View>
+              )}
             </View>
 
-            <View style={styles.statsContainer}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentUser.posts}</Text>
-                <Text style={styles.statLabel}>Posts</Text>
+            {/* In love with */}
+            {couple && (
+              <View style={{ alignItems: "center", marginTop: 12 }}>
+                <Text
+                  style={{
+                    fontSize: 16,
+                    color: COLORS.primary,
+                    textAlign: "center",
+                  }}
+                >
+                  In love with {couple.soulmateName}
+                </Text>
+
+                {/* Decline Love button */}
+                <TouchableOpacity
+                  style={{
+                    marginTop: 16,
+                    backgroundColor: "red",
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                  }}
+                  onPress={() => setConfirmModalVisible(true)}
+                >
+                  <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                    Decline Love
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+
+          {/* --- BIG STREAK CENTER --- */}
+          {couple && (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                marginVertical: 40,
+              }}
+            >
+              <View
+                style={{
+                  width: 320,
+                  height: 320,
+                  borderRadius: 210,
+                  backgroundColor: COLORS.primary,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ fontSize: 20, color: "#ffff" }}>Streak</Text>
+                <Text
+                  style={{ fontSize: 56, fontWeight: "bold", color: "#ffff" }}
+                >
+                  {streak}
+                </Text>
+                <Text style={{ fontSize: 20, color: "#ffff" }}>Days</Text>
               </View>
             </View>
-          </View>
-
-          <Text style={styles.name}>{currentUser.fullname}</Text>
-          {currentUser.bio && <Text style={styles.bio}>{currentUser.bio}</Text>}
-
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.editButton} onPress={() => setIsEditModalVisible(true)}>
-              <Text style={styles.editButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.shareButton}>
-              <Ionicons name="share-outline" size={20} color={COLORS.white} />
-            </TouchableOpacity>
-          </View>
+          )}
         </View>
-
-    
       </ScrollView>
 
       {/* EDIT PROFILE MODAL */}
@@ -118,7 +279,9 @@ export default function Profile() {
                 <TextInput
                   style={styles.input}
                   value={editedProfile.fullname}
-                  onChangeText={(text) => setEditedProfile((prev) => ({ ...prev, fullname: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, fullname: text }))
+                  }
                   placeholderTextColor={COLORS.gray}
                 />
               </View>
@@ -128,14 +291,19 @@ export default function Profile() {
                 <TextInput
                   style={[styles.input, styles.bioInput]}
                   value={editedProfile.bio}
-                  onChangeText={(text) => setEditedProfile((prev) => ({ ...prev, bio: text }))}
+                  onChangeText={(text) =>
+                    setEditedProfile((prev) => ({ ...prev, bio: text }))
+                  }
                   multiline
                   numberOfLines={4}
                   placeholderTextColor={COLORS.gray}
                 />
               </View>
 
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveProfile}>
+              <TouchableOpacity
+                style={styles.saveButton}
+                onPress={handleSaveProfile}
+              >
                 <Text style={styles.saveButtonText}>Save Changes</Text>
               </TouchableOpacity>
             </View>
@@ -166,6 +334,103 @@ export default function Profile() {
               />
             </View>
           )}
+        </View>
+      </Modal>
+      <Modal
+        visible={confirmModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setConfirmModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              width: "80%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 16 }}>
+              Are you sure about that…?
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 12 }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "red",
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  marginRight: 12,
+                }}
+                onPress={handleDeclineLove}
+              >
+                <Text style={{ color: "#fff" }}>Yes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "#ccc",
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                }}
+                onPress={() => setConfirmModalVisible(false)}
+              >
+                <Text>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={goodbyeModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setGoodbyeModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              width: "80%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 16 }}>
+              Sorry about your lost 😢. Hope to see u with new love soon!!!
+            </Text>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: COLORS.primary,
+                paddingHorizontal: 20,
+                paddingVertical: 10,
+                borderRadius: 8,
+              }}
+              onPress={() => setGoodbyeModalVisible(false)}
+            >
+              <Text style={{ color: "#fff" }}>OK</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>

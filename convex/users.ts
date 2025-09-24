@@ -205,3 +205,54 @@ export const getRelationshipTypeByUser = query({
     return couple.relationshipType ?? null;
   },
 });
+export const getCoupleByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const couple =
+      (await ctx.db
+        .query("couples")
+        .withIndex("by_user1", (q) => q.eq("user1Id", args.userId))
+        .first()) ||
+      (await ctx.db
+        .query("couples")
+        .withIndex("by_user2", (q) => q.eq("user2Id", args.userId))
+        .first());
+
+    if (!couple) return null;
+
+    // find soulmate (use === instead of .equals)
+    const soulmateId =
+      couple.user1Id === args.userId ? couple.user2Id : couple.user1Id;
+
+    const soulmate = await ctx.db.get(soulmateId);
+
+    return {
+      soulmateName: soulmate?.fullname ?? "Unknown",
+      soulmateImage: soulmate?.image ?? null,
+      soulmateBio: soulmate?.bio ?? null,
+      createdAt: couple.createdAt, // ISO string
+    };
+  },
+});
+export const removeCouple = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const couple =
+      (await ctx.db
+        .query("couples")
+        .withIndex("by_user1", (q) => q.eq("user1Id", args.userId))
+        .first()) ||
+      (await ctx.db
+        .query("couples")
+        .withIndex("by_user2", (q) => q.eq("user2Id", args.userId))
+        .first());
+
+    if (couple) {
+      await ctx.db.delete(couple._id);
+    }
+  },
+});
+
+
+
+

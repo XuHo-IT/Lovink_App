@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 import {
+    Image,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -8,24 +10,48 @@ import {
 } from 'react-native';
 
 interface ActivityCardProps {
+  id: number;
   title: string;
   iconType: string;
   onPress: () => void;
 }
 
-export function ActivityCard({ title, iconType, onPress }: ActivityCardProps) {
+export function ActivityCard({ id, title, iconType, onPress }: ActivityCardProps) {
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadActivityImage = async () => {
+      try {
+        const imageUri = await AsyncStorage.getItem(`activity_image_${id}`);
+        if (imageUri) {
+          setCapturedImage(imageUri);
+        }
+      } catch (error) {
+        console.error('Error loading activity image:', error);
+      }
+    };
+
+    loadActivityImage();
+  }, [id]);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
         <View style={styles.iconContainer}>
           <View style={styles.iconBackground}>
             <View style={styles.iconFrame}>
-              {/* Heart icon with multiple vectors to match Figma design */}
-              <View style={styles.heartContainer}>
-                <Ionicons name="heart" size={16} color="#6A5AE0" />
-                <Ionicons name="heart-outline" size={12} color="#6A5AE0" style={styles.heartOutline1} />
-                <Ionicons name="heart-outline" size={10} color="#6A5AE0" style={styles.heartOutline2} />
-              </View>
+              {capturedImage ? (
+                <Image 
+                  source={{ uri: capturedImage }}
+                  style={styles.activityImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.heartContainer}>
+                  <Ionicons name="heart" size={16} color="#6A5AE0" />
+                  <Ionicons name="heart-outline" size={12} color="#6A5AE0" style={styles.heartOutline1} />
+                  <Ionicons name="heart-outline" size={10} color="#6A5AE0" style={styles.heartOutline2} />
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -74,6 +100,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
+    overflow: 'hidden',
+  },
+  activityImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   heartContainer: {
     justifyContent: 'center',

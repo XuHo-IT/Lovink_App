@@ -2,6 +2,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
@@ -16,6 +17,7 @@ import activities from "../../constants/activities";
 
 export default function ActivitiesScreen() {
 const { user } = useUser();
+const router = useRouter();
 
 const dbUser = useQuery(
   api.users.getUserByClerkId,
@@ -26,6 +28,16 @@ const relationshipType = useQuery(
   api.users.getRelationshipTypeByUser,
   dbUser?._id ? { userId: dbUser._id } : "skip"
 );
+
+  const handleActivityPress = (activity: any) => {
+    router.push({
+      pathname: '../camera' as any,
+      params: {
+        activityId: activity.id,
+        activityTitle: activity.title,
+      }
+    });
+  };
 
   if (relationshipType === undefined) {
     return (
@@ -77,9 +89,10 @@ const relationshipType = useQuery(
           {activityList.map((activity) => (
             <ActivityCard
               key={activity.id}
+              id={activity.id}
               title={activity.title}
               iconType={activity.iconType}
-              onPress={() => console.log("Selected:", activity.title)}
+              onPress={() => handleActivityPress(activity)}
             />
           ))}
         </View>

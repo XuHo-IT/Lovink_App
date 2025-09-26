@@ -2,6 +2,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -19,7 +20,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function ActivitiesScreen() {
   const { user } = useUser();
-
+  const router = useRouter();
   // Always call hooks
   const dbUser = useQuery(
     api.users.getUserByClerkId,
@@ -48,7 +49,15 @@ export default function ActivitiesScreen() {
       </SafeAreaView>
     );
   }
-
+  const handleActivityPress = (activity: any) => {
+    router.push({
+      pathname: '../camera' as any,
+      params: {
+        activityId: activity.id,
+        activityTitle: activity.title,
+      }
+    });
+  };
   // Map activity list theo type
   const activityList =
     relationshipType === "longDistance"
@@ -124,9 +133,10 @@ export default function ActivitiesScreen() {
           {currentItems.map((activity) => (
             <ActivityCard
               key={activity.id}
+              id={activity.id}
               title={activity.title}
               iconType={activity.iconType}
-              onPress={() => console.log("Selected:", activity.title)}
+              onPress={() => handleActivityPress(activity)}
             />
           ))}
         </View>

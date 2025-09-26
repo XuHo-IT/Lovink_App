@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -11,106 +11,60 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import activities from "../../constants/activities";
 
-const ITEMS_PER_PAGE = 10;
-
 export default function ActivitiesScreen() {
-  const { user } = useUser();
-  const router = useRouter();
+const { user } = useUser();
+const router = useRouter();
 
-  // Always call hooks
-  const dbUser = useQuery(
-    api.users.getUserByClerkId,
-    user ? { clerkId: user.id } : "skip"
-  );
+const dbUser = useQuery(
+  api.users.getUserByClerkId,
+  user ? { clerkId: user.id } : "skip"
+);
 
-  const relationshipType = useQuery(
-    api.users.getRelationshipTypeByUser,
-    dbUser?._id ? { userId: dbUser._id } : "skip"
-  );
-
-  const [currentPage, setCurrentPage] = useState(1);
+const relationshipType = useQuery(
+  api.users.getRelationshipTypeByUser,
+  dbUser?._id ? { userId: dbUser._id } : "skip"
+);
 
   const handleActivityPress = (activity: any) => {
     router.push({
-      pathname: "../camera" as any,
+      pathname: '../camera' as any,
       params: {
         activityId: activity.id,
         activityTitle: activity.title,
-      },
+      }
     });
   };
 
   if (relationshipType === undefined) {
     return (
       <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#ff5a5f" />
       </SafeAreaView>
     );
   }
 
+  // Chưa có dữ liệu trong DB
   if (relationshipType === null) {
     return (
       <SafeAreaView style={styles.center}>
-        <Text>Sorry for your lost...!</Text>
+        <Text>Bạn chưa có type nào, hãy làm quiz!</Text>
       </SafeAreaView>
     );
   }
 
-  // Map danh sách activity theo type
+  // Map activity list theo type
   const activityList =
     relationshipType === "longDistance"
       ? activities.longDistance
       : relationshipType === "nearby"
       ? activities.nearby
       : [...activities.nearby, ...activities.longDistance];
-
-  // Pagination
-  const totalPages = Math.ceil(activityList.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = activityList.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
-  // Tạo dãy trang có dấu "..."
-  const generatePagination = (currentPage: number, totalPages: number) => {
-    const pages: (number | string)[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      if (currentPage <= 4) {
-        pages.push(1, 2, 3, 4, 5, 6, "...", totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(
-          1,
-          "...",
-          totalPages - 5,
-          totalPages - 4,
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
-        pages.push(
-          1,
-          "...",
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          "...",
-          totalPages
-        );
-      }
-    }
-    return pages;
-  };
-
+  console.log("Activity List:", activityList);  
+  // Subtitle
   const subtitle =
     relationshipType === "longDistance"
       ? "For long-distance couples 💌"
@@ -132,7 +86,7 @@ export default function ActivitiesScreen() {
         </View>
 
         <View style={styles.activitiesContainer}>
-          {currentItems.map((activity) => (
+          {activityList.map((activity) => (
             <ActivityCard
               key={activity.id}
               id={activity.id}
@@ -141,38 +95,6 @@ export default function ActivitiesScreen() {
               onPress={() => handleActivityPress(activity)}
             />
           ))}
-        </View>
-
-        {/* Pagination bar */}
-        <View style={styles.paginationContainer}>
-          {generatePagination(currentPage, totalPages).map((page, index) => {
-            if (page === "...") {
-              return (
-                <Text key={`ellipsis-${index}`} style={styles.ellipsis}>
-                  ...
-                </Text>
-              );
-            }
-            return (
-              <TouchableOpacity
-                key={page}
-                style={[
-                  styles.pageButton,
-                  currentPage === page && styles.activePage,
-                ]}
-                onPress={() => setCurrentPage(page as number)}
-              >
-                <Text
-                  style={[
-                    styles.pageText,
-                    currentPage === page && styles.activePageText,
-                  ]}
-                >
-                  {page}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -193,22 +115,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "700", color: "#0C092A" },
   subtitle: { fontSize: 16, color: "#555", marginTop: 5 },
   activitiesContainer: { paddingHorizontal: 20, gap: 12 },
-
-  paginationContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginVertical: 16,
-    flexWrap: "wrap",
-  },
-  pageButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginHorizontal: 4,
-    borderRadius: 6,
-    backgroundColor: "#eee",
-  },
-  activePage: { backgroundColor: "#ff5a5f" },
-  pageText: { fontSize: 14, color: "#333" },
-  activePageText: { color: "#fff", fontWeight: "bold" },
-  ellipsis: { marginHorizontal: 6, fontSize: 16, color: "#666" },
 });

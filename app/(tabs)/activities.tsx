@@ -2,8 +2,7 @@ import { ActivityCard } from "@/components/ActivityCard";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/clerk-expo";
 import { useQuery } from "convex/react";
-import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -17,7 +16,7 @@ import activities from "../../constants/activities";
 
 export default function ActivitiesScreen() {
 const { user } = useUser();
-const router = useRouter();
+//const router = useRouter();
 
 const dbUser = useQuery(
   api.users.getUserByClerkId,

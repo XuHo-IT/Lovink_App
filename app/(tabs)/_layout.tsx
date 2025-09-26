@@ -72,7 +72,13 @@ export default function TabLayout() {
         options={{ href: null,  tabBarStyle: { display: "none" }, }} />
         <Tabs.Screen name="flame" options={{ href: null }} />
         <Tabs.Screen name="bookmark" options={{ href: null }} />
-        <Tabs.Screen name="notification" options={{ href: null }} />
+        <Tabs.Screen name="support"  
+         options={{
+           tabBarStyle: { display: "none" },
+            tabBarIcon: ({ size, color }) => (
+              <Ionicons name="help-circle-outline" size={size} color={color} />
+            ),
+          }} />
       </Tabs>
     </>
   );

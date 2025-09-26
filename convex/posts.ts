@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { getAuthenticatedUser } from "./users";
@@ -6,6 +7,40 @@ export const generateUploadUrl = mutation(async (ctx) => {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthorized");
   return await ctx.storage.generateUploadUrl();
+});
+
+export const createPost = mutation({
+  args: {
+    storageId: v.id("_storage"),
+    caption: v.optional(v.string()),
+  },
+  handler: async (ctx, { storageId, caption }) => {
+    const currentUser = await getAuthenticatedUser(ctx);
+    
+    // Get the proper URL for the uploaded image
+    const imageUrl = await ctx.storage.getUrl(storageId);
+    
+    if (!imageUrl) {
+      throw new Error("Failed to get image URL");
+    }
+    
+    // Create the post
+    const postId = await ctx.db.insert("posts", {
+      userId: currentUser._id,
+      imageUrl,
+      storageId,
+      caption: caption || "",
+      likes: 0,
+      comments: 0,
+    });
+
+    // Update user's post count
+    await ctx.db.patch(currentUser._id, {
+      posts: currentUser.posts + 1,
+    });
+
+    return { postId, imageUrl };
+  },
 });
 
 export const getFeedPosts = query({

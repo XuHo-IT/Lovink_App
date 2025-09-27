@@ -78,6 +78,14 @@ couples: defineTable({
 })
   .index("by_user1", ["user1Id"])
   .index("by_user2", ["user2Id"])
-  .index("by_pair", ["user1Id", "user2Id"])
+  .index("by_pair", ["user1Id", "user2Id"]),
+    streaks: defineTable({
+    coupleId: v.id("couples"),
+    streak: v.number(),
+    lastUpdated: v.string(), // "YYYY-MM-DD"
+  }).index("by_couple", ["coupleId"]),
+  
 });
+
+
 

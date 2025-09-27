@@ -127,7 +127,6 @@ export const connectCouple = mutation({
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", myClerkId))
       .unique();
-
     if (!me) throw new Error("User not found");
 
     // find lover by code
@@ -135,36 +134,41 @@ export const connectCouple = mutation({
       .query("users")
       .withIndex("by_code", (q) => q.eq("code", loverCode))
       .unique();
-
     if (!lover) throw new Error("Lover not found");
 
-    // check if already connected (both directions)
+    // check if already connected
     const existing = await ctx.db
       .query("couples")
-      .withIndex("by_pair", (q) =>
-        q.eq("user1Id", me._id).eq("user2Id", lover._id)
-      )
+      .withIndex("by_pair", (q) => q.eq("user1Id", me._id).eq("user2Id", lover._id))
       .unique();
 
     const reverse = await ctx.db
       .query("couples")
-      .withIndex("by_pair", (q) =>
-        q.eq("user1Id", lover._id).eq("user2Id", me._id)
-      )
+      .withIndex("by_pair", (q) => q.eq("user1Id", lover._id).eq("user2Id", me._id))
       .unique();
 
     if (existing || reverse) {
       return existing?._id ?? reverse?._id;
     }
 
-    // ✅ Insert couple, storing ISO string instead of number
-    return await ctx.db.insert("couples", {
+    // ✅ Insert couple
+    const coupleId = await ctx.db.insert("couples", {
       user1Id: me._id,
       user2Id: lover._id,
-      createdAt: new Date().toISOString(), // must be string
+      createdAt: new Date().toISOString(),
     });
+
+    // ✅ Initialize streak row right away
+    await ctx.db.insert("streaks", {
+      coupleId,
+      streak: 1, // they just started 💕
+      lastUpdated: new Date().toISOString().split("T")[0], // YYYY-MM-DD
+    });
+
+    return coupleId;
   },
 });
+
 
 export const getUserByCode = query({
   args: { code: v.string() },
@@ -227,6 +231,7 @@ export const getCoupleByUser = query({
     const soulmate = await ctx.db.get(soulmateId);
 
     return {
+        _id: couple._id,
       soulmateName: soulmate?.fullname ?? "Unknown",
       soulmateImage: soulmate?.image ?? null,
       soulmateBio: soulmate?.bio ?? null,

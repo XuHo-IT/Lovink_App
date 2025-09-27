@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 interface ActivityCardProps {
@@ -14,37 +12,20 @@ interface ActivityCardProps {
   title: string;
   iconType: string;
   onPress: () => void;
+  isCompleted?: boolean;
 }
 
-export function ActivityCard({ id, title, iconType, onPress }: ActivityCardProps) {
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadActivityImage = async () => {
-      try {
-        const imageUri = await AsyncStorage.getItem(`activity_image_${id}`);
-        if (imageUri) {
-          setCapturedImage(imageUri);
-        }
-      } catch (error) {
-        console.error('Error loading activity image:', error);
-      }
-    };
-
-    loadActivityImage();
-  }, [id]);
+export function ActivityCard({ id, title, iconType, onPress, isCompleted = false }: ActivityCardProps) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
         <View style={styles.iconContainer}>
           <View style={styles.iconBackground}>
             <View style={styles.iconFrame}>
-              {capturedImage ? (
-                <Image 
-                  source={{ uri: capturedImage }}
-                  style={styles.activityImage}
-                  resizeMode="cover"
-                />
+              {isCompleted ? (
+                <View style={styles.checkmarkContainer}>
+                  <Ionicons name="checkmark-circle" size={28} color="#4CAF50" />
+                </View>
               ) : (
                 <View style={styles.heartContainer}>
                   <Ionicons name="heart" size={16} color="#6A5AE0" />
@@ -102,10 +83,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     overflow: 'hidden',
   },
-  activityImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
+  checkmarkContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 28,
+    height: 28,
   },
   heartContainer: {
     justifyContent: 'center',

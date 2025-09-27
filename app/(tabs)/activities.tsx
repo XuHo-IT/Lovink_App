@@ -34,30 +34,6 @@ export default function ActivitiesScreen() {
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  if (relationshipType === undefined) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color="#ff5a5f" />
-      </SafeAreaView>
-    );
-  }
-
-  if (relationshipType === null) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <Text>Sorry for your lost...!</Text>
-      </SafeAreaView>
-    );
-  }
-  const handleActivityPress = (activity: any) => {
-    router.push({
-      pathname: '../camera' as any,
-      params: {
-        activityId: activity.id,
-        activityTitle: activity.title,
-      }
-    });
-  };
   // Map activity list theo type
   const activityList =
     relationshipType === "longDistance"
@@ -73,6 +49,41 @@ export default function ActivitiesScreen() {
     startIndex,
     startIndex + ITEMS_PER_PAGE
   );
+
+  // Get completion status for current page activities
+  const currentActivityIds = currentItems.map(activity => activity.id);
+  const completionStatus = useQuery(
+    api.activityCompletions.getActivitiesCompletionStatus,
+    dbUser?._id && currentActivityIds.length > 0 
+      ? { userId: dbUser._id, activityIds: currentActivityIds }
+      : "skip"
+  );
+
+  if (relationshipType === undefined || completionStatus === undefined) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <ActivityIndicator size="large" color="#ff5a5f" />
+      </SafeAreaView>
+    );
+  }
+
+  if (relationshipType === null) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Text>Sorry for your lost...!</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const handleActivityPress = (activity: any) => {
+    router.push({
+      pathname: '../camera' as any,
+      params: {
+        activityId: activity.id,
+        activityTitle: activity.title,
+      }
+    });
+  };
 
   // Pagination generator with ellipsis
   const generatePagination = (currentPage: number, totalPages: number) => {
@@ -137,6 +148,7 @@ export default function ActivitiesScreen() {
               title={activity.title}
               iconType={activity.iconType}
               onPress={() => handleActivityPress(activity)}
+              isCompleted={completionStatus?.[activity.id] || false}
             />
           ))}
         </View>

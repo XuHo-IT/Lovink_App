@@ -9,6 +9,7 @@ import { useMutation, useQuery } from "convex/react";
 import { Image } from "expo-image";
 import { useState } from "react";
 import {
+  FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -18,7 +19,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
 
 export default function Profile() {
@@ -30,20 +31,19 @@ export default function Profile() {
     api.users.getUserByClerkId,
     userId ? { clerkId: userId } : "skip"
   );
-
+  const posts = useQuery(api.posts.getPostsByUser, {});
   // then pass Convex user._id to couple query
   const couple = useQuery(
     api.users.getCoupleByUser,
     currentUser?._id ? { userId: currentUser._id } : "skip"
   );
 
-  // streak calculation
-  const streak = couple?.createdAt
-    ? Math.floor(
-        (Date.now() - new Date(couple.createdAt).getTime()) /
-          (1000 * 60 * 60 * 24)
-      ) + 1 // +1 to count today
-    : 0;
+// streak from Convex
+const streak = useQuery(
+  api.streak.getStreak,
+  couple?._id ? { coupleId: couple._id } : "skip"
+);
+
 
   const [editedProfile, setEditedProfile] = useState({
     fullname: currentUser?.fullname || "",
@@ -242,15 +242,31 @@ export default function Profile() {
                 }}
               >
                 <Text style={{ fontSize: 20, color: "#ffff" }}>Streak</Text>
-                <Text
-                  style={{ fontSize: 56, fontWeight: "bold", color: "#ffff" }}
-                >
-                  {streak}
-                </Text>
+              <Text
+  style={{ fontSize: 56, fontWeight: "bold", color: "#ffff" }}
+>
+  {streak ?? 0}
+</Text>
+
                 <Text style={{ fontSize: 20, color: "#ffff" }}>Days</Text>
               </View>
             </View>
           )}
+            <FlatList
+          data={posts}
+          numColumns={3}
+          scrollEnabled={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.gridItem} onPress={() => setSelectedPost(item)}>
+              <Image
+                source={item.imageUrl}
+                style={styles.gridImage}
+                contentFit="cover"
+                transition={200}
+              />
+            </TouchableOpacity>
+          )}
+        />
         </View>
       </ScrollView>
 

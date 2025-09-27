@@ -33,25 +33,15 @@ type PostProps = {
 export default function Post({ post }: PostProps) {
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [isBookmarked, setIsBookmarked] = useState(post.isBookmarked);
-
+ const deletePost = useMutation(api.posts.deletePost);
   const [showComments, setShowComments] = useState(false);
 
   const { user } = useUser();
 
   const currentUser = useQuery(api.users.getUserByClerkId, user ? { clerkId: user.id } : "skip");
 
-  const toggleLike = useMutation(api.posts.toggleLike);
-  const toggleBookmark = useMutation(api.bookmarks.toggleBookmark);
-  const deletePost = useMutation(api.posts.deletePost);
 
-  const handleLike = async () => {
-    try {
-      const newIsLiked = await toggleLike({ postId: post._id });
-      setIsLiked(newIsLiked);
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    }
-  };
+  const toggleBookmark = useMutation(api.bookmarks.toggleBookmark);
 
   const handleBookmark = async () => {
     const newIsBookmarked = await toggleBookmark({ postId: post._id });
@@ -112,31 +102,14 @@ export default function Post({ post }: PostProps) {
       {/* POST ACTIONS */}
       <View style={styles.postActions}>
         <View style={styles.postActionsLeft}>
-          <TouchableOpacity onPress={handleLike}>
-            <Ionicons
-              name={isLiked ? "heart" : "heart-outline"}
-              size={24}
-              color={isLiked ? COLORS.primary : COLORS.white}
-            />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowComments(true)}>
             <Ionicons name="chatbubble-outline" size={22} color={COLORS.white} />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleBookmark}>
-          <Ionicons
-            name={isBookmarked ? "bookmark" : "bookmark-outline"}
-            size={22}
-            color={COLORS.white}
-          />
-        </TouchableOpacity>
       </View>
 
       {/* POST INFO */}
       <View style={styles.postInfo}>
-        <Text style={styles.likesText}>
-          {post.likes > 0 ? `${post.likes.toLocaleString()} likes` : "Be the first to like"}
-        </Text>
         {post.caption && (
           <View style={styles.captionContainer}>
             <Text style={styles.captionUsername}>{post.author.username}</Text>

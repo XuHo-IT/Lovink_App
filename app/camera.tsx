@@ -1,18 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMutation } from 'convex/react';
 import { CameraType, CameraView, FlashMode, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { api } from '../convex/_generated/api';
 
 export default function CameraScreen() {
   const router = useRouter();
@@ -24,9 +26,14 @@ export default function CameraScreen() {
   const [flashMode, setFlashMode] = useState<FlashMode>('off');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [zoom, setZoom] = useState(0); // 0 = 1x, 0.3 = 2x, 0.6 = 5x
   const [zoomLevel, setZoomLevel] = useState(1); // Display zoom level (1x, 2x, 5x)
   const cameraRef = useRef<CameraView>(null);
+
+  // Convex mutations
+  const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
+  const createPost = useMutation(api.posts.createPost);
 
   useEffect(() => {
     if (permission && !permission.granted) {
@@ -51,11 +58,43 @@ export default function CameraScreen() {
   };
 
   const confirmPhoto = async () => {
-    if (capturedImage && activityId) {
-      try {
-        const key = `activity_image_${activityId}`;
-        await AsyncStorage.setItem(key, capturedImage);
+    if (!capturedImage) {
+      router.back();
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      // Generate upload URL
+      const uploadUrl = await generateUploadUrl();
+      
+      // Convert image URI to blob
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
+      
+      // Upload to Convex storage
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": blob.type },
+        body: blob,
+      });
+
+      const { storageId } = await result.json();
+      
+      // Create the post and get the proper image URL
+      const { postId, imageUrl } = await createPost({
+        storageId,
+        caption: `Activity: ${activityTitle || 'Camera capture'}`,
+      });
+
+      // Save activity completion and image to AsyncStorage for ActivityCard display
+      if (activityId) {
+        // Save the image for this specific activity
+        const activityImageKey = `activity_image_${activityId}`;
+        await AsyncStorage.setItem(activityImageKey, imageUrl);
         
+        // Save activity completion
         const completedActivitiesKey = 'completed_activities';
         const existingCompleted = await AsyncStorage.getItem(completedActivitiesKey);
         const completedList = existingCompleted ? JSON.parse(existingCompleted) : [];
@@ -64,16 +103,18 @@ export default function CameraScreen() {
           completedList.push(activityId);
           await AsyncStorage.setItem(completedActivitiesKey, JSON.stringify(completedList));
         }
-        
-        Alert.alert('Success!', 'Photo saved successfully!', [
-          { text: 'OK', onPress: () => router.back() }
-        ]);
-      } catch (error) {
-        console.error('Error saving image:', error);
-        Alert.alert('Error', 'Failed to save photo');
       }
-    } else {
-      router.back();
+      
+      Alert.alert(
+        'Success!', 
+        'Photo saved and shared to your feed!', 
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (error) {
+      console.error('Error saving image:', error);
+      Alert.alert('Error', 'Failed to save photo. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -87,10 +128,7 @@ export default function CameraScreen() {
   };
 
   const toggleFlash = () => {
-    setFlashMode(current => 
-      current === 'off' ? 'on' : 
-      current === 'on' ? 'auto' : 'off'
-    );
+    setFlashMode(current => current === 'off' ? 'on' : 'off');
   };
 
   const handleZoomToggle = () => {
@@ -165,11 +203,14 @@ export default function CameraScreen() {
                   style={styles.flashButton}
                   onPress={toggleFlash}
                 >
-                  <View style={styles.flashButtonInner}>
+                  <View style={[
+                    styles.flashButtonInner,
+                    { backgroundColor: flashMode === 'off' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(238, 76, 137, 0.9)' }
+                  ]}>
                     <Ionicons 
-                      name={flashMode === 'on' ? "flash" : flashMode === 'auto' ? "flash" : "flash-off"} 
+                      name={flashMode === 'on' ? "flash" : "flash-off"} 
                       size={16} 
-                      color="#FFFFFF" 
+                      color={flashMode === 'off' ? "#000000" : "#FFFFFF"} 
                     />
                   </View>
                 </TouchableOpacity>
@@ -231,10 +272,15 @@ export default function CameraScreen() {
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={styles.confirmButton}
+                style={[styles.confirmButton, isUploading && styles.confirmButtonDisabled]}
                 onPress={confirmPhoto}
+                disabled={isUploading}
               >
-                <Ionicons name="checkmark" size={32} color="#FFFFFF" />
+                {isUploading ? (
+                  <Text style={styles.uploadingText}>...</Text>
+                ) : (
+                  <Ionicons name="checkmark" size={32} color="#FFFFFF" />
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -338,12 +384,18 @@ const styles = StyleSheet.create({
   },
   flashButtonInner: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     borderRadius: 17.5,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(5, 4, 2, 0.7)',
+    flexDirection: 'row',
+  },
+  autoText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: 'bold',
+    marginLeft: 2,
   },
   zoomButton: {
     backgroundColor: '#47494C',
@@ -437,6 +489,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#EE4C89',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: '#999',
+  },
+  uploadingText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   bottomNavigation: {
     backgroundColor: '#6DA7D5',

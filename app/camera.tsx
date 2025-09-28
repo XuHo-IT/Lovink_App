@@ -1,18 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from 'convex/react';
 import { CameraType, CameraView, FlashMode, useCameraPermissions } from 'expo-camera';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert,
-  Image,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { api } from '../convex/_generated/api';
 
@@ -34,6 +33,7 @@ export default function CameraScreen() {
   // Convex mutations
   const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
   const createPost = useMutation(api.posts.createPost);
+  const markActivityCompleted = useMutation(api.activityCompletions.markActivityCompleted);
 
   useEffect(() => {
     if (permission && !permission.granted) {
@@ -88,26 +88,16 @@ export default function CameraScreen() {
         caption: `Activity: ${activityTitle || 'Camera capture'}`,
       });
 
-      // Save activity completion and image to AsyncStorage for ActivityCard display
+      // Mark activity as completed in database
       if (activityId) {
-        // Save the image for this specific activity
-        const activityImageKey = `activity_image_${activityId}`;
-        await AsyncStorage.setItem(activityImageKey, imageUrl);
-        
-        // Save activity completion
-        const completedActivitiesKey = 'completed_activities';
-        const existingCompleted = await AsyncStorage.getItem(completedActivitiesKey);
-        const completedList = existingCompleted ? JSON.parse(existingCompleted) : [];
-        
-        if (!completedList.includes(activityId)) {
-          completedList.push(activityId);
-          await AsyncStorage.setItem(completedActivitiesKey, JSON.stringify(completedList));
-        }
+        await markActivityCompleted({
+          activityId: parseInt(activityId as string, 10)
+        });
       }
       
       Alert.alert(
         'Success!', 
-        'Photo saved and shared to your feed!', 
+        'Photo saved and activity completed!', 
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {

@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
    title: {
     fontSize: 24,
     fontWeight: "700",
-    color: "white",
+    color: "#000000ff",
     textAlign: "center",
     marginBottom: 20,
   },
@@ -131,7 +131,7 @@ export const styles = StyleSheet.create({
   button: {
     backgroundColor: "#f893b5ff", 
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: 28,
     alignItems: "center",
     marginTop: 8,
      width: "50%", 
@@ -140,16 +140,20 @@ export const styles = StyleSheet.create({
     color: "black",
     fontWeight: "600",
     fontSize: 16,
-    
   },
   linkRow: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 16,
+    marginTop: 76,
+  },
+    linkRow1: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 206,
   },
   link: {
     color: "#4ade80",
-    fontWeight: "600",
+    fontWeight: "700",
   },
   modalOverlay: {
   flex: 1,

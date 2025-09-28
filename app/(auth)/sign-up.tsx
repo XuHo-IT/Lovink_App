@@ -1,8 +1,6 @@
-import { COLORS } from "@/constants/theme";
 import { api } from "@/convex/_generated/api";
 import { styles } from "@/styles/auth.style";
 import { useSignUp, useUser } from "@clerk/clerk-expo";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation } from "convex/react";
 import { Link, useRouter } from "expo-router";
 import * as React from "react";
@@ -43,8 +41,14 @@ export default function SignUpScreen() {
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
-      console.error(err);
-      setError("Sign-up failed. Try again.");
+      let message = "Something went wrong. Please try again.";
+      if (err.errors && err.errors[0]?.message) {
+        message = err.errors[0].message; // Clerk's detailed error
+      } else if (err.message) {
+        message = err.message;
+      }
+
+      setError(message);
       setShowModal(true);
     }
   };
@@ -70,13 +74,12 @@ export default function SignUpScreen() {
             clerkId: user.id,
           });
         }
-               router.replace("/(tabs)");
+        router.replace("/(tabs)");
       } else {
         setError("Invalid verification code.");
         setShowModal(true);
       }
     } catch (err: any) {
-      console.error(err);
       setError("Verification failed. Try again.");
       setShowModal(true);
     }
@@ -122,15 +125,6 @@ export default function SignUpScreen() {
     <View style={styles.container}>
       <ErrorModal />
 
-      {/* Brand */}
-      <View style={styles.brandSection}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="leaf" size={32} color={COLORS.primary} />
-        </View>
-        <Text style={styles.appName}>spotlight</Text>
-        <Text style={styles.tagline}>don&apos;t miss anything</Text>
-      </View>
-
       {/* Illustration */}
       <View style={styles.illustrationContainer}>
         <Image
@@ -158,11 +152,11 @@ export default function SignUpScreen() {
         />
 
         <TouchableOpacity onPress={onSignUpPress} style={styles.button}>
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
 
-        <View style={styles.linkRow}>
-          <Text style={{ color: "white" }}>Already have an account? </Text>
+        <View style={styles.linkRow1}>
+          <Text style={{ color: "#000000ffc" }}>Already have an account? </Text>
           <Link href="/sign-in">
             <Text style={styles.link}>Sign in</Text>
           </Link>

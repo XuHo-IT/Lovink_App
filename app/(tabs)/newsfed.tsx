@@ -1,7 +1,7 @@
 import { Loader } from "@/components/Loader";
 import Post from "@/components/Post";
 import { api } from "@/convex/_generated/api";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "convex/react";
 import { router, useRouter } from "expo-router";
@@ -16,7 +16,15 @@ export default function Index() {
   const router = useRouter();
 
   const posts = useQuery(api.posts.getFeedPosts);
-
+    const { user } = useUser();
+    const dbUser = useQuery(
+      api.users.getUserByClerkId,
+      user ? { clerkId: user.id } : "skip"
+    );
+  const relationshipType = useQuery(
+    api.users.getRelationshipTypeByUser,
+    dbUser?._id ? { userId: dbUser._id } : "skip"
+  );
   if (posts === undefined) return <Loader />;
   if (posts.length === 0) return <NoPostsFound />;
 
@@ -70,12 +78,12 @@ const NoPostsFound = () => (
   style={{
     marginTop: 20,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 20,
     backgroundColor: "#db6fb7ff", // background ok
     alignItems: "center",
   }}
 >
-  <Text style={{ fontSize: 20, color:"#1500f9ff" }}>
+  <Text style={{ fontSize: 20, color:"#ffffffff" }}>
     Create new memory and streak
   </Text>
 </TouchableOpacity>

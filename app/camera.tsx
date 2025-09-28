@@ -4,14 +4,14 @@ import { CameraType, CameraView, FlashMode, useCameraPermissions } from 'expo-ca
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Image,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { api } from '../convex/_generated/api';
 
@@ -51,7 +51,6 @@ export default function CameraScreen() {
         setCapturedImage(photo.uri);
         setIsConfirming(true);
       } catch (error) {
-        console.error('Error taking picture:', error);
         Alert.alert('Error', 'Failed to take picture');
       }
     }
@@ -88,6 +87,8 @@ export default function CameraScreen() {
         caption: `Activity: ${activityTitle || 'Camera capture'}`,
       });
 
+
+
       // Mark activity as completed in database
       if (activityId) {
         await markActivityCompleted({
@@ -101,7 +102,6 @@ export default function CameraScreen() {
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {
-      console.error('Error saving image:', error);
       Alert.alert('Error', 'Failed to save photo. Please try again.');
     } finally {
       setIsUploading(false);

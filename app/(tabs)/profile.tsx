@@ -7,7 +7,7 @@ import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery } from "convex/react";
 import { Image } from "expo-image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Keyboard,
@@ -43,6 +43,14 @@ const streak = useQuery(
   api.streak.getStreak,
   couple?._id ? { coupleId: couple._id } : "skip"
 );
+const updateStreak = useMutation(api.streak.updateStreak);
+
+useEffect(() => {
+  if (couple?._id) {
+    updateStreak({ coupleId: couple._id });
+  }
+}, [couple?._id, posts]);
+
 
 
   const [editedProfile, setEditedProfile] = useState({
@@ -242,11 +250,10 @@ const streak = useQuery(
                 }}
               >
                 <Text style={{ fontSize: 20, color: "#ffff" }}>Streak</Text>
-              <Text
-  style={{ fontSize: 56, fontWeight: "bold", color: "#ffff" }}
->
-  {streak ?? 0}
+<Text style={{ fontSize: 56, fontWeight: "bold", color: "#ffff" }}>
+  {streak?.streak ?? 0}
 </Text>
+
 
                 <Text style={{ fontSize: 20, color: "#ffff" }}>Days</Text>
               </View>

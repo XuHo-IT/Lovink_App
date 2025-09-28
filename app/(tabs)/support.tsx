@@ -130,12 +130,12 @@ export default function RelationshipQuiz() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FDFAF6", paddingHorizontal: 20 },
-  questionContainer: { marginBottom: 20 },
+  questionContainer: { marginBottom: 20, marginTop: 40, marginLeft: 10,marginRight:5 },
   questionText: { fontSize: 20, fontWeight: "700", color: "#0C092A" },
   optionsContainer: { flex: 1, marginTop: 10 },
   optionButton: {
     backgroundColor: "#fff",
-    padding: 15,
+    padding: 20,
     marginVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 40,
+    paddingBottom: 340,
   },
   cancelButton: {
     backgroundColor: "#F2C94C",

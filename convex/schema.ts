@@ -85,6 +85,17 @@ couples: defineTable({
     lastUpdated: v.string(), // "YYYY-MM-DD"
   }).index("by_couple", ["coupleId"]),
   
+    activityCompletions: defineTable({
+    activityId: v.float64(),
+    completedAt: v.string(),
+    userId: v.id("users"),
+  })
+    .index("by_activity", ["activityId"])
+    .index("by_user", ["userId"])
+    .index("by_user_and_activity", [
+      "userId",
+      "activityId",
+    ]),
 });
 
 

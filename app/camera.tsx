@@ -277,23 +277,7 @@ export default function CameraScreen() {
         )}
       </View>
 
-      {/* Bottom Navigation Bar */}
-      <View style={styles.bottomNavigation}>
-        <TouchableOpacity style={styles.navButton}>
-          <Ionicons name="home-outline" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Ionicons name="flame" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Ionicons name="add" size={24} color="#FFF3F3" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton}>
-          <Ionicons name="person" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-        
-        <View style={styles.homeIndicator} />
-      </View>
+    
     </SafeAreaView>
   );
 }

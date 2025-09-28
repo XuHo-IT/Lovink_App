@@ -39,6 +39,7 @@ export const updateStreak = mutation({
       return postDate === today;
     });
 
+
     // 3. If >= 4 posts and not updated today → increment streak
     if (todayPosts.length >= 4) {
       if (!streakDoc) {
@@ -59,18 +60,49 @@ export const updateStreak = mutation({
       }
     }
 
-    return { streak: streakDoc ? streakDoc.streak : 0, id: streakDoc?._id };
+    return {
+        streak: streakDoc ? streakDoc.streak : 0, id: streakDoc?._id };
   },
 });
 
 export const getStreak = query({
   args: { coupleId: v.id("couples") },
   handler: async (ctx, { coupleId }) => {
+    const today = getTodayString();
+
     const streakDoc = await ctx.db
       .query("streaks")
       .withIndex("by_couple", (q) => q.eq("coupleId", coupleId))
       .first();
 
-    return streakDoc ? streakDoc.streak : 0;
+    // fetch couple to compute posts
+    const couple = await ctx.db.get(coupleId);
+    if (!couple) throw new Error("Couple not found");
+
+    const user1Posts = await ctx.db
+      .query("posts")
+      .withIndex("by_user", (q) => q.eq("userId", couple.user1Id))
+      .collect();
+
+    const user2Posts = await ctx.db
+      .query("posts")
+      .withIndex("by_user", (q) => q.eq("userId", couple.user2Id))
+      .collect();
+
+    const todayPosts = [...user1Posts, ...user2Posts].filter((p) => {
+      const postDate = new Date(p._creationTime).toISOString().split("T")[0];
+      return postDate === today;
+    });
+
+    return {
+      streak: streakDoc ? streakDoc.streak : 0,
+      id: streakDoc?._id,
+      debug: {
+        today,
+        lastUpdated: streakDoc?.lastUpdated,
+        todayPosts: todayPosts.length,
+      },
+    };
   },
 });
+

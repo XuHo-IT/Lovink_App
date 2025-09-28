@@ -4,7 +4,7 @@ import { styles } from "@/styles/auth.style";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useConvex, useMutation } from "convex/react";
+import { useConvex, useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 
@@ -26,7 +26,7 @@ export default function CoupleCodeScreen() {
   const [loverConflictModal, setLoverConflictModal] = useState(false);
   const [selectedLover, setSelectedLover] = useState<any>(null);
   const [checking, setChecking] = useState(true);
-
+const user = useQuery(api.users.getAuthenticatedUserQuery);
   const convex = useConvex();
   const connectCouple = useMutation(api.users.connectCouple);
   const { isLoaded, isSignedIn, userId,signOut } = useAuth();
@@ -61,7 +61,6 @@ export default function CoupleCodeScreen() {
           setChecking(false);
         }
       } catch (err) {
-        console.error("Relationship check failed:", err);
         setChecking(false);
       }
     };
@@ -87,7 +86,6 @@ export default function CoupleCodeScreen() {
       const code = await convex.query(api.users.getUserCode, { clerkId: userId });
       setMyCode(code);
     } catch (err) {
-      console.error("Error fetching my code:", err);
       alert("Failed to fetch your code");
     }
   };
@@ -99,6 +97,10 @@ export default function CoupleCodeScreen() {
         alert("Lover not found ❌");
         return;
       }
+        if (lover._id === user._id) {
+      alert("You can't connect to yourself. Please try again ❌");
+      return;
+    }
 
       // 🔎 check if lover already in a relationship
       const loverRelationship = await convex.query(
@@ -114,7 +116,6 @@ export default function CoupleCodeScreen() {
         setLoverConfirmModal(true); // ✅ ask confirmation
       }
     } catch (err) {
-      console.error("Error finding lover:", err);
       alert("Error finding lover");
     }
   };
@@ -143,7 +144,6 @@ export default function CoupleCodeScreen() {
         router.replace("/(tabs)/quiz");
       }, 2000);
     } catch (err) {
-      console.error("Error connecting couple:", err);
       alert("Failed to connect 💔");
     }
   };

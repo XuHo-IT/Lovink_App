@@ -19,7 +19,7 @@ export default function OAuthButtons() {
         await setActive!({ session: createdSessionId });
       }
     } catch (err) {
-      console.error("Google OAuth error:", err);
+      alert("Google OAuth error:");
     }
   };
 
@@ -31,7 +31,7 @@ export default function OAuthButtons() {
         await setActive!({ session: createdSessionId });
       }
     } catch (err) {
-      console.error("Facebook OAuth error:", err);
+      alert("Facebook OAuth error:");
     }
   };
 

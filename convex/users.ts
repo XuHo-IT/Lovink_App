@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
 import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 
 function generateCode(length = 6) {
@@ -242,6 +243,7 @@ export const getCoupleByUser = query({
 export const removeCouple = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
+    // 1. Find couple by user
     const couple =
       (await ctx.db
         .query("couples")
@@ -252,11 +254,37 @@ export const removeCouple = mutation({
         .withIndex("by_user2", (q) => q.eq("user2Id", args.userId))
         .first());
 
-    if (couple) {
-      await ctx.db.delete(couple._id);
+    if (!couple) return;
+
+    // 2. Delete all posts from both users
+    const deleteUserPosts = async (userId: Id<"users">) => {
+      const posts = await ctx.db
+        .query("posts")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+
+      for (const post of posts) {
+        await ctx.db.delete(post._id);
+      }
+    };
+    await deleteUserPosts(couple.user1Id);
+    await deleteUserPosts(couple.user2Id);
+
+    // 3. Delete streaks for this couple
+    const streaks = await ctx.db
+      .query("streaks")
+      .withIndex("by_couple", (q) => q.eq("coupleId", couple._id))
+      .collect();
+
+    for (const streak of streaks) {
+      await ctx.db.delete(streak._id);
     }
+
+    // 4. Finally, delete the couple itself
+    await ctx.db.delete(couple._id);
   },
 });
+
 
 
 

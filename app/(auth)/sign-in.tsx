@@ -63,10 +63,18 @@ export default function SignInScreen() {
         setShowModal(true);
       }
     } catch (err: any) {
-      console.error(err);
-      setError("Invalid credentials. Try again.");
-      setShowModal(true);
-    }
+
+  let message = "Something went wrong. Please try again.";
+  if (err.errors && err.errors[0]?.message) {
+    message = err.errors[0].message; // Clerk's detailed error
+  } else if (err.message) {
+    message = err.message;
+  }
+
+  setError(message);
+  setShowModal(true);
+}
+
   };
 
   return (
@@ -124,7 +132,7 @@ export default function SignInScreen() {
         </Text>
 
         <View style={styles.linkRow}>
-          <Text style={{ color: "white" }}>Don't have an account? </Text>
+          <Text style={{ color: "#000000ff" }}>Don't have an account? </Text>
           <Link href="/sign-up">
             <Text style={styles.link}>Sign up</Text>
           </Link>

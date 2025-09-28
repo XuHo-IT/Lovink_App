@@ -243,7 +243,7 @@ export const getCoupleByUser = query({
 export const removeCouple = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    // 1. Find couple by user
+    // 1. Find couple
     const couple =
       (await ctx.db
         .query("couples")
@@ -256,7 +256,7 @@ export const removeCouple = mutation({
 
     if (!couple) return;
 
-    // 2. Delete all posts from both users
+    // 2. Delete posts
     const deleteUserPosts = async (userId: Id<"users">) => {
       const posts = await ctx.db
         .query("posts")
@@ -270,7 +270,7 @@ export const removeCouple = mutation({
     await deleteUserPosts(couple.user1Id);
     await deleteUserPosts(couple.user2Id);
 
-    // 3. Delete streaks for this couple
+    // 3. Delete streaks
     const streaks = await ctx.db
       .query("streaks")
       .withIndex("by_couple", (q) => q.eq("coupleId", couple._id))
@@ -280,10 +280,25 @@ export const removeCouple = mutation({
       await ctx.db.delete(streak._id);
     }
 
-    // 4. Finally, delete the couple itself
+    // 4. Delete activity completions for both users
+    const deleteCompletions = async (userId: Id<"users">) => {
+      const completions = await ctx.db
+        .query("activityCompletions")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+
+      for (const completion of completions) {
+        await ctx.db.delete(completion._id);
+      }
+    };
+    await deleteCompletions(couple.user1Id);
+    await deleteCompletions(couple.user2Id);
+
+    // 5. Delete couple record
     await ctx.db.delete(couple._id);
   },
 });
+
 
 
 

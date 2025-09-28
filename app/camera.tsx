@@ -353,6 +353,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 10,
     overflow: 'hidden',
+    borderRadius: 100,
+    marginBottom: 100,
   },
   camera: {
     flex: 1,
@@ -360,7 +362,7 @@ const styles = StyleSheet.create({
   cameraOverlay: {
     flex: 1,
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 50,
   },
   topControls: {
     flexDirection: 'row',

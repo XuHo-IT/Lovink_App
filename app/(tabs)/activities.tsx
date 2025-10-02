@@ -1,6 +1,7 @@
 import { ActivityCard } from "@/components/ActivityCard";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "convex/react";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -15,13 +16,15 @@ import {
   View,
 } from "react-native";
 import activities from "../../constants/activities";
+import { COLORS } from "../../constants/theme";
 
 const ITEMS_PER_PAGE = 10;
 
 export default function ActivitiesScreen() {
   const { user } = useUser();
+  const { signOut } = useAuth();
   const router = useRouter();
-  // Always call hooks
+
   const dbUser = useQuery(
     api.users.getUserByClerkId,
     user ? { clerkId: user.id } : "skip"
@@ -135,9 +138,22 @@ export default function ActivitiesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* HEADER */}
         <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.username}>
+              Welcome {dbUser?.fullname || "User"}
+            </Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
+              <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
           <Text style={styles.title}>Recommended Activities</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>       
         </View>
 
         <View style={styles.activitiesContainer}>
@@ -199,11 +215,33 @@ const styles = StyleSheet.create({
   },
   scrollView: { flex: 1 },
   scrollContent: { paddingBottom: 100 },
-  header: { paddingHorizontal: 26, paddingTop: 40, paddingBottom: 20 },
   title: { fontSize: 20, fontWeight: "700", color: "#0C092A" },
   subtitle: { fontSize: 16, color: "#555", marginTop: 5 },
   activitiesContainer: { paddingHorizontal: 20, gap: 12 },
-
+header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomColor: COLORS.surface,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.white,
+  },
+  headerRight: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  headerIcon: {
+    padding: 4,
+  },
   paginationContainer: {
     flexDirection: "row",
     justifyContent: "center",

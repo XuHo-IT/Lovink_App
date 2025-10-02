@@ -1,204 +1,257 @@
+import { COLORS } from "@/constants/theme";
+import { api } from "@/convex/_generated/api";
+import { styles } from "@/styles/auth.style";
+import { useAuth } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useConvex, useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
 import {
+  ActivityIndicator,
   Modal,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import quizData from "../../constants/support";
 
-
-
-
-export default function RelationshipQuiz() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showFinishModal, setShowFinishModal] = useState(false);
-  const [answers, setAnswers] = useState<string[]>([]);
+export default function CoupleCodeScreen() {
+  const [myCode, setMyCode] = useState("");
+  const [loverCode, setLoverCode] = useState("");
+  const [showMyCode, setShowMyCode] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loverConfirmModal, setLoverConfirmModal] = useState(false);
+  const [loverConflictModal, setLoverConflictModal] = useState(false);
+  const [selectedLover, setSelectedLover] = useState<any>(null);
+  const [checking, setChecking] = useState(true);
+const user = useQuery(api.users.getAuthenticatedUserQuery);
+const relationship = useQuery(
+  api.users.getRelationshipTypeByUser,
+  user?._id ? { userId: user._id } : "skip"
+);
+  const convex = useConvex();
+  const connectCouple = useMutation(api.users.connectCouple);
+  const { isLoaded, isSignedIn, userId,signOut } = useAuth();
   const router = useRouter();
+  // 🔎 Check relationship on mount
+  useEffect(() => {
+    const checkRelationship = async () => {
+      if (!isLoaded) return;
+      if (!isSignedIn) {
+        router.replace("/(auth)/sign-in");
+        return;
+      }
 
-  const currentQuestion = quizData[currentIndex];
+      try {
+        const convexUser = await convex.query(api.users.getUserByClerkId, {
+          clerkId: userId!,
+        });
 
-  const handleSelect = (option: string) => {
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentIndex] = option;
-    setAnswers(updatedAnswers);
-  };
+        if (!convexUser) {
+          setChecking(false);
+          return;
+        }
 
-  const handleNext = () => {
-    if (currentIndex < quizData.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      setShowFinishModal(true);
+        const relationship = await convex.query(
+          api.users.getRelationshipTypeByUser,
+          { userId: convexUser._id }
+        );
+
+        if (relationship) {
+          router.replace("/(tabs)/newsfed");
+        } else {
+          setChecking(false);
+        }
+      } catch (err) {
+        setChecking(false);
+      }
+    };
+
+    checkRelationship();
+  }, [isLoaded, isSignedIn, userId]);
+
+  if (checking) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // ==== HANDLERS ====
+  const handleGetMyCode = async () => {
+    try {
+      if (!userId) {
+        alert("User not authenticated");
+        return;
+      }
+      const code = await convex.query(api.users.getUserCode, { clerkId: userId });
+      setMyCode(code);
+    } catch (err) {
+      alert("Failed to fetch your code");
     }
   };
 
-  const handleCancel = () => {
-    router.replace("/(tabs)/newsfed"); 
+  const handleGetLoverCode = async () => {
+    try {
+      const lover = await convex.query(api.users.getUserByCode, { code: loverCode });
+      if (!lover) {
+        alert("Lover not found ❌");
+        return;
+      }
+        if (lover._id === user._id) {
+      alert("You can't connect to yourself. Please try again ❌");
+      return;
+    }
+
+      // 🔎 check if lover already in a relationship
+      const loverRelationship = await convex.query(
+        api.users.getRelationshipTypeByUser,
+        { userId: lover._id }
+      );
+
+      if (loverRelationship) {
+        setSelectedLover(lover);
+        setLoverConflictModal(true); // ❌ already has soulmate
+      } else {
+        setSelectedLover(lover);
+        setLoverConfirmModal(true); // ✅ ask confirmation
+      }
+    } catch (err) {
+      alert("Error finding lover");
+    }
   };
 
+  const handleConfirmConnect = async () => {
+    try {
+      if (!userId || !selectedLover) {
+        alert("User not authenticated");
+        return;
+      }
+
+      const coupleId = await connectCouple({
+        myClerkId: userId,
+        loverCode,
+      });
+
+      if (coupleId) {
+        await AsyncStorage.setItem("coupleId", coupleId);
+      }
+
+      setLoverConfirmModal(false);
+      setModalVisible(true);
+
+      setTimeout(() => {
+        setModalVisible(false);
+        router.replace("/(tabs)/quiz");
+      }, 2000);
+    } catch (err) {
+      alert("Failed to connect 💔");
+    }
+  };
+
+  // ==== UI ====
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FDFAF6" />
-
-      {/* Question */}
-      <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{currentQuestion.question}</Text>
+    <View style={styles.container}>
+          <View style={styles.header}>
+        <View style={styles.headerLeft}>
+        </View>
+        <View style={styles.headerRight}>
+          <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
+            <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
+      <Text style={styles.title}>Couple Code</Text>
 
-      {/* Options */}
-      <View style={styles.optionsContainer}>
-        {currentQuestion.options.map((option, index) => {
-          const isSelected = answers[currentIndex] === option;
-          return (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.optionButton,
-                isSelected && styles.optionButtonSelected,
-              ]}
-              onPress={() => handleSelect(option)}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  isSelected && styles.optionTextSelected,
-                ]}
-              >
-                {option}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {showMyCode ? (
+        <View style={styles.section}>
+          <Text style={styles.label}>Your Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Your code will appear here"
+            value={myCode}
+            editable={false}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleGetMyCode}>
+            <Text style={styles.buttonText}>Get My Code</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowMyCode(false)}>
+            <Text style={styles.linkText}>Back to Lover's Code</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.label}>Lover's Code</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter lover's code"
+            value={loverCode}
+            onChangeText={setLoverCode}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleGetLoverCode}>
+            <Text style={styles.buttonText}>Find Lover</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowMyCode(true)}>
+            <Text style={styles.linkText}>Get your code?</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-          <Text style={styles.footerText}>Cancel</Text>
-        </TouchableOpacity>
-
-    <TouchableOpacity
-  style={[
-    styles.nextButton,
-    !answers[currentIndex] && { backgroundColor: "#ccc" }, // gray if no answer
-  ]}
-  disabled={!answers[currentIndex]} // only enabled when answered
-  onPress={handleNext}
->
-  <Text style={styles.footerText}>
-    {currentIndex < quizData.length - 1 ? "Next" : "Finish"}
-  </Text>
-</TouchableOpacity>
-
-
-      </View>
-
-      {/* ✅ Finish Modal */}
-      <Modal
-        visible={showFinishModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowFinishModal(false)}
-      >
+      {/* Success Modal */}
+      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🎉 Thanks for your support!</Text>
-            <Text style={styles.modalSubtitle}>
-              We will developed new feature accroding to your answer soon.
-              Be ready !!
-            </Text>
-          <TouchableOpacity
-  style={styles.modalButton}
-  onPress={() => {
-    setShowFinishModal(false); 
-    router.replace("/(tabs)/newsfed"); 
-  }}
->
-  <Text style={styles.modalButtonText}>Go back</Text>
-</TouchableOpacity>
-
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>💖 Happy for you guys! 💖</Text>
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+
+      {/* Lover confirmation modal */}
+      <Modal visible={loverConfirmModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>
+              Is this your lover? 💕{"\n"}
+              {selectedLover?.fullname || "Unknown"}
+            </Text>
+            <View style={{ flexDirection: "row", marginTop: 10 }}>
+              <TouchableOpacity
+                style={[styles.button, { marginRight: 10 }]}
+                onPress={handleConfirmConnect}
+              >
+                <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: "gray" }]}
+                onPress={() => setLoverConfirmModal(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Conflict modal */}
+      <Modal visible={loverConflictModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>
+              Sorry 😢{"\n"}
+              {selectedLover?.name || "This person"} already has another soulmate 💔
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 10 }]}
+              onPress={() => setLoverConflictModal(false)}
+            >
+              <Text style={styles.buttonText}>Okay</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FDFAF6", paddingHorizontal: 20 },
-  questionContainer: { marginBottom: 20, marginTop: 40, marginLeft: 10,marginRight:5 },
-  questionText: { fontSize: 20, fontWeight: "700", color: "#0C092A" },
-  optionsContainer: { flex: 1, marginTop: 10 },
-  optionButton: {
-    backgroundColor: "#fff",
-    padding: 20,
-    marginVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  optionText: { fontSize: 16, color: "#333" },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 40,
-    paddingBottom: 340,
-  },
-  cancelButton: {
-    backgroundColor: "#F2C94C",
-    padding: 12,
-    borderRadius: 10,
-    flex: 1,
-    marginRight: 8,
-  },
-  nextButton: {
-    backgroundColor: "#27AE60",
-    padding: 12,
-    borderRadius: 10,
-    flex: 1,
-    marginLeft: 8,
-  },
-  footerText: {
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 25,
-    borderRadius: 12,
-    alignItems: "center",
-    width: "80%",
-  },
-  modalTitle: { fontSize: 22, fontWeight: "700", marginBottom: 10 },
-  modalSubtitle: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  modalButton: {
-    backgroundColor: "#27AE60",
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  modalButtonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-
-  optionButtonSelected: {
-    backgroundColor: "#27AE60",
-    borderColor: "#27AE60",
-  },
-  optionTextSelected: { color: "#fff", fontWeight: "700" },
-});

@@ -60,34 +60,33 @@ export default function Post({ post }: PostProps) {
     <View style={styles.post}>
       {/* POST HEADER */}
       <View style={styles.postHeader}>
-        <Link
-          href={
-            currentUser?._id === post.author._id ? "/(tabs)/profile" : `/user/${post.author._id}`
-          }
-          asChild
-        >
-          <TouchableOpacity style={styles.postHeaderLeft}>
-            <Image
-              source={post.author.image}
-              style={styles.postAvatar}
-              contentFit="cover"
-              transition={200}
-              cachePolicy="memory-disk"
-            />
-            <Text style={styles.postUsername}>{post.author.username}</Text>
-          </TouchableOpacity>
-        </Link>
+       <Link
+  href={
+    currentUser?._id === post.author._id
+      ? "/(tabs)/profile"
+      : { pathname: "/user/[id]", params: { id: post.author._id } }
+  }
+  asChild
+>
+  <TouchableOpacity style={styles.postHeaderLeft}>
+    <Image
+      source={post.author.image}
+      style={styles.postAvatar}
+      contentFit="cover"
+      transition={200}
+      cachePolicy="memory-disk"
+    />
+    <Text style={styles.postUsername}>{post.author.username}</Text>
+  </TouchableOpacity>
+</Link>
+
 
         {/* if i'm the owner of the post, show the delete button  */}
         {post.author._id === currentUser?._id ? (
           <TouchableOpacity onPress={handleDelete}>
             <Ionicons name="trash-outline" size={20} color={COLORS.primary} />
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={20} color={COLORS.white} />
-          </TouchableOpacity>
-        )}
+        ) : null}
       </View>
 
       {/* IMAGE */}

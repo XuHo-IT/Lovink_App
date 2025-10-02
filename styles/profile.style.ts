@@ -35,6 +35,8 @@ export const styles = StyleSheet.create({
   },
   profileInfo: {
     padding: 16,
+    textAlign: "center",
+    alignItems: "center", 
   },
   avatarAndStats: {
     flexDirection: "row",
@@ -238,4 +240,32 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     color: COLORS.white,
   },
+  postCard: {
+  marginBottom: 16,
+  borderRadius: 12,
+  overflow: "hidden",
+  backgroundColor: COLORS.black,
+},
+postImage: {
+  width: "100%",
+  height: 200,
+},
+postCaption: {
+  padding: 8,
+  color: COLORS.white,
+},
+sectionTitle: {
+  fontSize: 18,
+  fontWeight: "600",
+  color: COLORS.white,
+  marginVertical: 12,
+  textAlign: "center", // ✅ center text
+},
+
+emptyText: {
+  color: COLORS.gray,
+  textAlign: "center",
+  marginTop: 20,
+},
+
 });

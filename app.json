@@ -3,6 +3,9 @@
     "name": "Lovink",
     "slug": "Lovink",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lovink",
@@ -44,6 +47,16 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e03ea458-1588-4669-9280-f94882b6cec9"
+      }
+    },
+    "owner": "lovinkapp",
+    "updates": {
+      "url": "https://u.expo.dev/e03ea458-1588-4669-9280-f94882b6cec9"
     }
   }
 }

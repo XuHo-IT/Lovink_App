@@ -134,7 +134,10 @@ useEffect(() => {
                       flex: 1,
                     }}
                   >
-                    {currentUser.fullname}
+                  {currentUser.fullname
+  ?.split(" ")
+  .slice(0, 2)
+  .join(" ") || currentUser.fullname}
                   </Text>
                 </View>
 
@@ -176,7 +179,7 @@ useEffect(() => {
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <Ionicons
                     name="heart"
-                    size={84}
+                    size={50}
                     color={COLORS.primary}
                     style={{ marginRight: 40 }}
                   />
@@ -214,7 +217,7 @@ useEffect(() => {
                 <TouchableOpacity
                   style={{
                     marginTop: 16,
-                    backgroundColor: "red",
+                    backgroundColor: COLORS.primary,
                     paddingHorizontal: 20,
                     paddingVertical: 10,
                     borderRadius: 8,
@@ -225,6 +228,15 @@ useEffect(() => {
                     Decline Love
                   </Text>
                 </TouchableOpacity>
+                  <Text  style={{
+                    marginTop: 16,
+                    backgroundColor: "#6daaefff",
+                    paddingHorizontal: 10,
+                    paddingVertical: 10,
+                    borderRadius: 8,
+                    fontSize:12,
+                  }}>Your streak will stay active if you complete 4 activities a day.</Text>
+
               </View>
             )}
           </View>

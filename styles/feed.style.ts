@@ -16,6 +16,22 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomColor: COLORS.surface,
   },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: COLORS.white,
+  },
+  headerRight: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  headerIcon: {
+    padding: 4,
+  },
   headerTitle: {
     fontSize: 24,
     fontFamily: "JetBrainsMono-Medium",
@@ -106,8 +122,6 @@ export const styles = StyleSheet.create({
     marginBottom: 6,
   },
   captionContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     marginBottom: 6,
   },
   captionUsername: {

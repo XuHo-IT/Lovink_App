@@ -1,38 +1,62 @@
 const quizData = [
   {
     id: 1,
-    question: "Khi ở bên người yêu, bạn thích dành thời gian làm gì nhất?",
-    options: ["Chỉ trò chuyện & nhắn tin online", "Ra ngoài chơi / khám phá quán xá", "Xem phim, nghe nhạc, chơi game cùng nhau", "Thử các hoạt động mới mẻ / trải nghiệm sáng tạo"],
+    question: "When you're with your partner, how do you prefer to spend time together?",
+    options: [
+      "Just talking & texting online",
+      "Going out / exploring places",
+      "Watching movies, listening to music, playing games together",
+      "Trying new activities / creative experiences"
+    ],
   },
   {
     id: 2,
-    question: "Bạn thích những thử thách tình yêu kiểu nào?",
-    options: ["Hành động nhỏ hàng ngày (note, nhắn tin...)", "Hoạt động offline (đi chơi, hẹn hò...)", "Game / quiz / mini-challenge online", "Không thích thử thách"],
+    question: "What kind of love challenges do you enjoy?",
+    options: [
+      "Small daily actions (notes, texting, etc.)",
+      "Offline activities (dates, hanging out...)",
+      "Games / quizzes / mini online challenges",
+      "Don’t like challenges"
+    ],
   },
   {
     id: 3,
-    question: "Tần suất tương tác với người yêu mỗi ngày",
-    options: ["<5 lần", "5–10 lần", "10–20 lần", ">20 lần"],
+    question: "How often do you interact with your partner each day?",
+    options: ["<5 times", "5–10 times", "10–20 times", ">20 times"],
   },
   {
     id: 4,
-    question: "Bạn nghĩ điều gì khiến mối quan hệ trở nên thú vị hơn?",
-    options: ["Hoạt động chung / hẹn hò", "Quà tặng / tin nhắn ngọt ngào", "Game / thử thách vui", "Khác"],
+    question: "What do you think makes the relationship more exciting?",
+    options: [
+      "Shared activities / dates",
+      "Gifts / sweet messages",
+      "Fun games / challenges",
+      "Other"
+    ],
   },
   {
     id: 5,
-    question: "Bạn thích nhận / làm thử thách theo cặp hay tự cá nhân?",
-    options: ["Cặp đôi", "Cá nhân nhưng ảnh hưởng đến người yêu", "Kết hợp", "Không quan tâm"],
+    question: "Do you prefer challenges as a couple or individually?",
+    options: [
+      "As a couple",
+      "Individually but affecting your partner",
+      "Combination",
+      "Don’t care"
+    ],
   },
   {
     id: 6,
-    question: "Bạn muốn thử thách có yếu tố gì?",
-    options: ["Lãng mạn", "Vui nhộn", "Sáng tạo / mới lạ", "Kết hợp nhiều loại"],
+    question: "What element would you like challenges to have?",
+    options: ["Romantic", "Fun", "Creative / unique", "Mix of many types"],
   },
   {
     id: 7,
-    question: "Bạn và người yêu hiện tại đang ở đâu?",
-    options: ["Cùng thành phố / gần nhau (Yêu gần)", "Khác thành phố trong Việt Nam (Yêu xa)", "Khác quốc gia (Yêu xa quốc tế)"],
+    question: "Where are you and your partner currently?",
+    options: [
+      "Same city / close (Near-distance relationship)",
+      "Different cities in Vietnam (Long-distance relationship)",
+      "Different countries (International long-distance relationship)"
+    ],
   },
 ];
 

@@ -96,6 +96,15 @@ couples: defineTable({
       "userId",
       "activityId",
     ]),
+    quizCompletions: defineTable({
+  quizId: v.string(),         
+  completedAt: v.string(),      
+  userId: v.id("users"),        
+})
+  .index("by_quiz", ["quizId"])
+  .index("by_user", ["userId"])
+  .index("by_user_and_quiz", ["userId", "quizId"]),
+
 });
 
 

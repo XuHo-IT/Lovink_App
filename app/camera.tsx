@@ -58,7 +58,7 @@ export default function CameraScreen() {
 
   const confirmPhoto = async () => {
     if (!capturedImage) {
-      router.back();
+      router.replace("/(tabs)/activities")
       return;
     }
 
@@ -99,7 +99,7 @@ export default function CameraScreen() {
       Alert.alert(
         'Success!', 
         'Photo saved and activity completed!', 
-        [{ text: 'OK', onPress: () => router.back() }]
+        [{ text: 'OK', onPress: () => router.replace("/(tabs)/activities") }]
       );
     } catch (error) {
       Alert.alert('Error', 'Failed to save photo. Please try again.');
@@ -147,9 +147,12 @@ export default function CameraScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Text>No access to camera</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.button}>
-          <Text style={styles.buttonText}>Go Back</Text>
-        </TouchableOpacity>
+      <TouchableOpacity 
+  onPress={() => router.replace("/(tabs)/activities")} 
+  style={styles.button}
+>
+  <Text style={styles.buttonText}>Go to Back</Text>
+</TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -160,7 +163,7 @@ export default function CameraScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={()  => router.replace("/(tabs)/activities")}>
           <Ionicons name="close" size={28} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Camera</Text>
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
   },
   activityBadgeText: {
     color: '#000',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
   },
   cameraContainer: {
@@ -449,11 +452,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 40,
     paddingHorizontal: 40,
+    backgroundColor:"#b7d4f5ff",
   },
   retakeButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',

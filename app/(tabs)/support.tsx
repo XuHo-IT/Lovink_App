@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useConvex, useMutation, useQuery } from "convex/react";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -26,51 +26,50 @@ export default function CoupleCodeScreen() {
   const [loverConflictModal, setLoverConflictModal] = useState(false);
   const [selectedLover, setSelectedLover] = useState<any>(null);
   const [checking, setChecking] = useState(true);
-const user = useQuery(api.users.getAuthenticatedUserQuery);
-const relationship = useQuery(
-  api.users.getRelationshipTypeByUser,
-  user?._id ? { userId: user._id } : "skip"
-);
+
+  const user = useQuery(api.users.getAuthenticatedUserQuery);
   const convex = useConvex();
   const connectCouple = useMutation(api.users.connectCouple);
-  const { isLoaded, isSignedIn, userId,signOut } = useAuth();
+  const { isLoaded, isSignedIn, userId, signOut } = useAuth();
   const router = useRouter();
-  // 🔎 Check relationship on mount
-  useEffect(() => {
-    const checkRelationship = async () => {
-      if (!isLoaded) return;
-      if (!isSignedIn) {
-        router.replace("/(auth)/sign-in");
+
+  // ✅ Reusable checkRelationship function
+  const checkRelationship = useCallback(async () => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      router.replace("/(auth)/sign-in");
+      return;
+    }
+
+    try {
+      const convexUser = await convex.query(api.users.getUserByClerkId, {
+        clerkId: userId!,
+      });
+
+      if (!convexUser) {
+        setChecking(false);
         return;
       }
 
-      try {
-        const convexUser = await convex.query(api.users.getUserByClerkId, {
-          clerkId: userId!,
-        });
+      const relationship = await convex.query(
+        api.users.getRelationshipTypeByUser,
+        { userId: convexUser._id }
+      );
 
-        if (!convexUser) {
-          setChecking(false);
-          return;
-        }
-
-        const relationship = await convex.query(
-          api.users.getRelationshipTypeByUser,
-          { userId: convexUser._id }
-        );
-
-        if (relationship) {
-          router.replace("/(tabs)/newsfed");
-        } else {
-          setChecking(false);
-        }
-      } catch (err) {
+      if (relationship) {
+        router.replace("/(tabs)/newsfed");
+      } else {
         setChecking(false);
       }
-    };
+    } catch (err) {
+      setChecking(false);
+    }
+  }, [isLoaded, isSignedIn, userId, convex, router]);
 
+  // 🔎 Run once on mount
+  useEffect(() => {
     checkRelationship();
-  }, [isLoaded, isSignedIn, userId]);
+  }, [checkRelationship]);
 
   if (checking) {
     return (
@@ -101,10 +100,10 @@ const relationship = useQuery(
         alert("Lover not found ❌");
         return;
       }
-        if (lover._id === user._id) {
-      alert("You can't connect to yourself. Please try again ❌");
-      return;
-    }
+      if (lover._id === user._id) {
+        alert("You can't connect to yourself. Please try again ❌");
+        return;
+      }
 
       // 🔎 check if lover already in a relationship
       const loverRelationship = await convex.query(
@@ -155,15 +154,15 @@ const relationship = useQuery(
   // ==== UI ====
   return (
     <View style={styles.container}>
-          <View style={styles.header}>
-        <View style={styles.headerLeft}>
-        </View>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}></View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.headerIcon} onPress={() => signOut()}>
             <Ionicons name="log-out-outline" size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </View>
+
       <Text style={styles.title}>Couple Code</Text>
 
       {showMyCode ? (
@@ -197,6 +196,22 @@ const relationship = useQuery(
           <TouchableOpacity onPress={() => setShowMyCode(true)}>
             <Text style={styles.linkText}>Get your code?</Text>
           </TouchableOpacity>
+
+          {/* 🔄 Reload Section */}
+          <View style={{ marginTop: 20, alignItems: "center" }}>
+            <Text style={{ color: COLORS.white, marginBottom: 10 }}>
+              Reload again if you are connected
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: COLORS.primary }]}
+              onPress={() => {
+                setChecking(true);
+                checkRelationship(); // ✅ re-run check without leaving page
+              }}
+            >
+              <Text style={styles.buttonText}>Reload</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
